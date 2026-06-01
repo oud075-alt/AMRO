@@ -2683,8 +2683,11 @@ function setActiveSymbolFromWatch(item) {
 }
 
 function signalInterval() {
-  // Trial/web deploy: shorter bar + fresher reads than 1h-only dashboard.
-  return isTrialGuestSession() ? '15m' : '1h';
+  return '15m';
+}
+
+function signalRefreshMs() {
+  return 60 * 1000;
 }
 
 async function loadSignal() {
@@ -4045,7 +4048,7 @@ function renderPipeline(d) {
 // ── Auto-refresh every 5 min ─────────────────────────────
 setInterval(() => {
   if (state.user) loadSignal();
-}, 5 * 60 * 1000);
+}, signalRefreshMs());
 
 // ── Global onclick handlers (inline HTML) ────────────────
 window.loginWithGoogle = loginWithGoogle;
