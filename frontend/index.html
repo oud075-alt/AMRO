@@ -2001,6 +2001,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
     <p>AMRO ไม่ใช่แค่ indicator แต่คือระบบที่บอกได้ว่า <strong>signal นี้เชื่อได้แค่ไหน</strong><br>และตลาดอยู่ใน <strong>state ไหน</strong> ก่อนที่คุณจะกด Buy หรือ Sell</p>
     <div class="hero-cta">
       <button class="btn btn-primary" style="font-size:15px;padding:12px 28px;" onclick="loginWithGoogle()">เริ่มใช้งานฟรี — Sign in with Google</button>
+      <button class="btn btn-outline" style="font-size:15px;padding:12px 28px;" onclick="enterTrialDashboard()">ทดลอง Dashboard (ไม่ต้อง Login)</button>
       <button class="btn btn-outline" style="font-size:15px;padding:12px 28px;" onclick="scrollToPricing()">ดูแผนราคา</button>
     </div>
   </div>
@@ -2452,10 +2453,41 @@ function scrollToPricing() {
 }
 
 // ── Auth ────────────────────────────────────────────────
+const TRIAL_GUEST_KEY = 'amro_trial_guest';
+
+function isTrialGuestSession() {
+  return sessionStorage.getItem(TRIAL_GUEST_KEY) === '1';
+}
+
+async function pocketBaseReachable() {
+  if (!pb) return false;
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 3000);
+    const r = await fetch(`${PB_URL}/api/health`, { signal: ctrl.signal });
+    clearTimeout(timer);
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function enterTrialDashboard() {
+  state.user = { id: 'trial-guest', email: 'trial@amro.local', name: 'Trial Guest' };
+  state.tier = 'subscription';
+  sessionStorage.setItem(TRIAL_GUEST_KEY, '1');
+  await afterLogin();
+  showToast('✅ Web Trial — ใช้ Dashboard ได้โดยไม่ต้อง Login (Google Login ต้องตั้ง PocketBase ก่อน)', 'success');
+}
+
 async function loginWithGoogle() {
   try {
     if (!pb) {
-      showToast('❌ ไม่สามารถโหลดระบบ Login (PocketBase SDK) — โปรดลอง reload หรือเช็ค network/CDN', 'error');
+      showToast('❌ ไม่สามารถโหลดระบบ Login (PocketBase SDK) — ใช้ปุ่มทดลอง Dashboard แทน', 'error');
+      return;
+    }
+    if (!(await pocketBaseReachable())) {
+      showToast('❌ PocketBase ยังไม่พร้อม — กด "ทดลอง Dashboard (ไม่ต้อง Login)" แทน', 'error');
       return;
     }
     showLoading('กำลังเชื่อมต่อ Google...');
@@ -2463,13 +2495,15 @@ async function loginWithGoogle() {
       provider: 'google',
     });
     state.user = authData.record;
+    sessionStorage.removeItem(TRIAL_GUEST_KEY);
     // Membership system disabled: login grants access.
     state.tier = 'subscription';
     await afterLogin();
   } catch (err) {
     hideLoading();
     console.error(err);
-    showToast('❌ Login ล้มเหลว: ' + (err.message || 'ลองใหม่อีกครั้ง'), 'error');
+    const hint = ' (ลองปุ่มทดลอง Dashboard หรือตั้ง PocketBase + Google OAuth)';
+    showToast('❌ Login ล้มเหลว: ' + (err.message || 'ลองใหม่อีกครั้ง') + hint, 'error');
   }
 }
 
@@ -2483,6 +2517,7 @@ async function afterLogin() {
 
 function logout() {
   pb?.authStore?.clear();
+  sessionStorage.removeItem(TRIAL_GUEST_KEY);
   state.user = null;
   state.tier = 'free';
   updateNav();
@@ -2526,6 +2561,14 @@ function updateNav() {
 
 // ── Check existing auth session ──────────────────────────
 function checkSession() {
+  if (isTrialGuestSession()) {
+    state.user = { id: 'trial-guest', email: 'trial@amro.local', name: 'Trial Guest' };
+    state.tier = 'subscription';
+    updateNav();
+    showPage('pageDashboard');
+    loadSignal();
+    return;
+  }
   if (!pb) return;
   if (pb.authStore.isValid) {
     state.user = pb.authStore.model;
@@ -4000,6 +4043,7 @@ setInterval(() => {
 
 // ── Global onclick handlers (inline HTML) ────────────────
 window.loginWithGoogle = loginWithGoogle;
+window.enterTrialDashboard = enterTrialDashboard;
 window.logout = logout;
 window.toggleAuth = toggleAuth;
 window.goHome = goHome;
@@ -4017,6 +4061,9 @@ window.calcPosition = calcPosition;
 // ── Init ─────────────────────────────────────────────────
 checkPaymentSuccess();
 checkSession();
+if (new URLSearchParams(window.location.search).get('trial') === '1' && !state.user) {
+  enterTrialDashboard();
+}
 if (document.getElementById('pageDashboard')?.classList.contains('active')) {
   document.body.classList.add('shell-dashboard');
   if (!state.user) loadSignal();
