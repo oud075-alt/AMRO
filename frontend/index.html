@@ -2682,9 +2682,14 @@ function setActiveSymbolFromWatch(item) {
   selectSymbol(item);
 }
 
+function signalInterval() {
+  // Trial/web deploy: shorter bar + fresher reads than 1h-only dashboard.
+  return isTrialGuestSession() ? '15m' : '1h';
+}
+
 async function loadSignal() {
   const sym   = encodeURIComponent(state.symbol);
-  const url   = `/api/signals/${sym}?audit=false&interval=1h&_t=${Date.now()}`;
+  const url   = `/api/signals/${sym}?audit=false&interval=${signalInterval()}&_t=${Date.now()}`;
   renderGovernancePanel(null);
   applyAuditHierarchy(null);
 
