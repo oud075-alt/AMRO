@@ -2,7 +2,24 @@
 
 This runbook deploys AMRO for browser-based trial access only. EA live execution is not enabled for this launch; the EA bridge returns governance permission/fail-closed state only.
 
-## 1. Server Setup
+## 1. One-Command VPS Deploy (Linode / Vultr / DO)
+
+On a fresh Ubuntu 22.04 server as `root`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/oud075-alt/AMRO/main/scripts/deploy_vps.sh | bash
+```
+
+Then edit API keys:
+
+```bash
+nano /opt/amro/.env
+systemctl restart amro
+```
+
+Open `http://YOUR_SERVER_IP/` in a browser.
+
+## 2. Manual Server Setup
 
 Use Python 3.12 if possible.
 
