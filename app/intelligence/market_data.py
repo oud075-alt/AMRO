@@ -15,6 +15,7 @@ from app.core.config import settings
 
 _MARKET_DATA_CACHE: dict[tuple, tuple[float, pd.DataFrame]] = {}
 _MARKET_DATA_CACHE_TTL_SEC = 45
+_MARKET_DATA_STALE_SEC = 900
 
 
 # ─── Yahoo Finance (Stocks / Forex / Indices) ───────────────────────────────
@@ -22,6 +23,7 @@ _MARKET_DATA_CACHE_TTL_SEC = 45
 _YAHOO_SYMBOL_FALLBACKS: dict[str, list[str]] = {
     "GC=F": ["XAUUSD=X"],
     "XAUUSD": ["GC=F", "XAUUSD=X"],
+    "NZDUSD=X": ["NZD=X"],
 }
 
 # When Yahoo is blocked on VPS/datacenter IPs, use liquid Binance proxies.
@@ -181,10 +183,70 @@ def get_binance() -> ccxt.binance:
     return _binance_client
 
 
-def fetch_yahoo_chart(symbol: str, interval: str = "1h", days: int = 30) -> pd.DataFrame:
-    """Yahoo v8 chart API — works when yfinance fails (e.g. VPS/datacenter)."""
+def _parse_yahoo_chart_result(result: dict, symbol: str, interval: str, days: int) -> pd.DataFrame:
+    quote_data = result["indicators"]["quote"][0]
+    ts = result.get("timestamp") or []
+    if not ts:
+        return pd.DataFrame()
+    df = pd.DataFrame(
+        {
+            "open": quote_data.get("open"),
+            "high": quote_data.get("high"),
+            "low": quote_data.get("low"),
+            "close": quote_data.get("close"),
+            "volume": quote_data.get("volume"),
+        },
+        index=pd.to_datetime(ts, unit="s", utc=True),
+    )
+    df.index.name = "timestamp"
+    df["volume"] = df["volume"].fillna(0)
+    df.dropna(subset=["open", "high", "low", "close"], inplace=True)
+    cutoff = pd.Timestamp.now(tz="UTC") - timedelta(days=days)
+    df = df[df.index >= cutoff]
+    if df.empty:
+        return pd.DataFrame()
+    logger.info(f"Fetched {len(df)} rows for {symbol} via Yahoo chart API ({interval})")
+    return df
+
+
+def _yahoo_chart_request(
+    encoded_symbol: str,
+    yahoo_interval: str,
+    range_param: str,
+    days: int,
+    headers: dict,
+) -> pd.DataFrame:
     from urllib.parse import quote
 
+    sym = encoded_symbol if "%" in encoded_symbol else quote(encoded_symbol, safe="")
+    now_sec = int(datetime.now(timezone.utc).timestamp())
+    period1 = now_sec - days * 86400
+    param_sets = [
+        {"interval": yahoo_interval, "range": range_param},
+        {"interval": yahoo_interval, "period1": period1, "period2": now_sec},
+    ]
+    for params in param_sets:
+        for host in ("query1.finance.yahoo.com", "query2.finance.yahoo.com"):
+            try:
+                url = f"https://{host}/v8/finance/chart/{sym}"
+                resp = requests.get(url, params=params, headers=headers, timeout=25)
+                resp.raise_for_status()
+                chart = resp.json().get("chart") or {}
+                if chart.get("error"):
+                    continue
+                results = chart.get("result") or []
+                if not results:
+                    continue
+                df = _parse_yahoo_chart_result(results[0], sym, yahoo_interval, days)
+                if not df.empty:
+                    return df
+            except Exception:
+                continue
+    return pd.DataFrame()
+
+
+def fetch_yahoo_chart(symbol: str, interval: str = "1h", days: int = 30) -> pd.DataFrame:
+    """Yahoo v8 chart API — works when yfinance fails (e.g. VPS/datacenter)."""
     yahoo_interval = {
         "1m": "1m",
         "5m": "5m",
@@ -210,52 +272,27 @@ def fetch_yahoo_chart(symbol: str, interval: str = "1h", days: int = 30) -> pd.D
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         )
     }
-    params = {"interval": yahoo_interval, "range": range_param}
-    encoded = quote(symbol, safe="")
-
     try:
-        result = None
-        for host in ("query1.finance.yahoo.com", "query2.finance.yahoo.com"):
-            url = f"https://{host}/v8/finance/chart/{encoded}"
-            resp = requests.get(url, params=params, headers=headers, timeout=25)
-            resp.raise_for_status()
-            chart = resp.json().get("chart") or {}
-            if chart.get("error"):
-                continue
-            results = chart.get("result") or []
-            if not results:
-                continue
-            result = results[0]
-            break
-        if result is None:
-            return pd.DataFrame()
-        quote_data = result["indicators"]["quote"][0]
-        ts = result.get("timestamp") or []
-        if not ts:
-            return pd.DataFrame()
-
-        df = pd.DataFrame(
-            {
-                "open": quote_data.get("open"),
-                "high": quote_data.get("high"),
-                "low": quote_data.get("low"),
-                "close": quote_data.get("close"),
-                "volume": quote_data.get("volume"),
-            },
-            index=pd.to_datetime(ts, unit="s", utc=True),
-        )
-        df.index.name = "timestamp"
-        df["volume"] = df["volume"].fillna(0)
-        df.dropna(subset=["open", "high", "low", "close"], inplace=True)
-        cutoff = pd.Timestamp.now(tz="UTC") - timedelta(days=days)
-        df = df[df.index >= cutoff]
-        if df.empty:
-            return pd.DataFrame()
-        logger.info(f"Fetched {len(df)} rows for {symbol} via Yahoo chart API ({interval})")
-        return df
+        return _yahoo_chart_request(symbol, yahoo_interval, range_param, days, headers)
     except Exception as e:
         logger.error(f"Yahoo chart API error for {symbol}: {e}")
         return pd.DataFrame()
+
+
+def fetch_yahoo_chart_retry(
+    symbol: str,
+    interval: str = "1h",
+    days: int = 30,
+    attempts: int = 4,
+) -> pd.DataFrame:
+    """Retry chart fetch — NZD/USD has no Kraken pair and is rate-limited more often on VPS."""
+    for attempt in range(attempts):
+        df = fetch_yahoo_chart(symbol, interval=interval, days=days)
+        if not df.empty:
+            return df
+        if attempt < attempts - 1:
+            time.sleep(1.25 * (attempt + 1))
+    return pd.DataFrame()
 
 
 def fetch_finnhub_candles(symbol: str, interval: str = "1h", days: int = 30) -> pd.DataFrame:
@@ -457,9 +494,13 @@ def _fetch_yahoo_with_fallbacks(symbol: str, interval: str, days: int) -> pd.Dat
 
     limit = _candle_limit(interval, days)
 
+    chart_attempts = 5 if symbol == "NZDUSD=X" else 3
+
     def _try_chart_api() -> pd.DataFrame:
         for candidate in candidates:
-            df = fetch_yahoo_chart(candidate, interval=interval, days=days)
+            df = fetch_yahoo_chart_retry(
+                candidate, interval=interval, days=days, attempts=chart_attempts
+            )
             if not df.empty:
                 if candidate != symbol:
                     logger.info(f"Yahoo chart fallback {symbol} -> {candidate} ({len(df)} rows)")
@@ -532,8 +573,10 @@ def fetch_market_data(
     """
     cache_key = (symbol, interval, days, source)
     now = time.time()
+    ttl = 120 if symbol == "NZDUSD=X" else _MARKET_DATA_CACHE_TTL_SEC
+    stale_ttl = 1800 if symbol == "NZDUSD=X" else _MARKET_DATA_STALE_SEC
     cached = _MARKET_DATA_CACHE.get(cache_key)
-    if cached and (now - cached[0]) < _MARKET_DATA_CACHE_TTL_SEC:
+    if cached and (now - cached[0]) < ttl:
         return cached[1].copy()
 
     limit = _candle_limit(interval, days)
@@ -541,6 +584,10 @@ def fetch_market_data(
         df = fetch_binance(symbol, timeframe=interval, limit=limit)
     else:
         df = _fetch_yahoo_with_fallbacks(symbol, interval=interval, days=days)
+
+    if df.empty and cached and (now - cached[0]) < stale_ttl:
+        logger.warning(f"Serving stale market data for {symbol} (age={int(now - cached[0])}s)")
+        return cached[1].copy()
 
     if not df.empty:
         _MARKET_DATA_CACHE[cache_key] = (now, df.copy())
