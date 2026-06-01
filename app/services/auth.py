@@ -108,8 +108,13 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
     return user
 
 
-async def get_current_tier(authorization: Optional[str] = Header(None)) -> Tier:
+async def get_current_tier(
+    authorization: Optional[str] = Header(None),
+    x_amro_trial: Optional[str] = Header(None, alias="X-AMRO-Trial"),
+) -> Tier:
     """FastAPI dependency — ดึง tier ของ current user"""
+    if x_amro_trial == "1":
+        return Tier.SUBSCRIPTION
     # Dev mode: ถ้าไม่มี token ให้เป็น free tier (สำหรับ local test)
     if not authorization:
         return Tier.FREE
