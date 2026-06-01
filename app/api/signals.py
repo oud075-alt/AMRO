@@ -31,8 +31,10 @@ async def get_signal(
 ):
     config = get_tier_config(current_tier)
 
-    days = max(config.history_days, 30)
-    df = fetch_market_data(symbol=symbol, interval=interval, days=days)
+    tier_days = max(config.history_days, 30)
+    # Trial/subscription tiers request 90d+ but Yahoo/Kraken on VPS fail on long windows (NZD/USD etc.).
+    fetch_days = min(tier_days, 30)
+    df = fetch_market_data(symbol=symbol, interval=interval, days=fetch_days)
     if df.empty:
         return {"error": f"ไม่พบข้อมูลสำหรับ {symbol}"}
 
@@ -53,7 +55,7 @@ async def get_signal(
     decision = run_runtime(
         symbol=symbol,
         interval=interval,
-        days=days,
+        days=fetch_days,
         run_context_llm=config.audit_agent or audit,
         log_decision=True,
         df=df,
