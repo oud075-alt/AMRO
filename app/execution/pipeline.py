@@ -367,5 +367,6 @@ def run_execution_pipeline(
                 brain3_judge.judge_summary if brain3_judge and brain3_judge.active else gov.reason
             )[:120],
         },
+        "brain2_cognition": brain2.to_dict(),
         "architecture": "amro_consolidated_runtime_v8_brain2_ai123",
     }
