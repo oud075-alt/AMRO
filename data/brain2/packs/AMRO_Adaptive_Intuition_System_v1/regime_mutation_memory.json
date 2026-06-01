@@ -1,0 +1,10 @@
+[
+  {
+    "mutation_id": "REGIME_001",
+    "before_regime": "stable_trend",
+    "transition_trigger": "volatility_instability",
+    "after_regime": "chaotic_market",
+    "mutation_risk": "high",
+    "historical_similarity": 0.69
+  }
+]

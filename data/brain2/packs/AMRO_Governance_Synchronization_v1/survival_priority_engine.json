@@ -1,0 +1,9 @@
+[
+  {
+    "priority_id": "SURV_001",
+    "profit_opportunity": "medium",
+    "survival_risk": "high",
+    "decision_priority": "survival_first",
+    "recommended_action": "avoid aggressive positioning"
+  }
+]

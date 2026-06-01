@@ -1,0 +1,53 @@
+[
+  {
+    "relation_id": "MS_KYLE_001",
+    "from_behavior": "signed_order_flow_pressure",
+    "to_behavior": "adverse_selection_cost",
+    "weight": 0.84,
+    "regimes": ["*"],
+    "source": "Kyle (1985) Econometrica",
+    "measurable_implication": "price_impact_per_unit_flow (Kyle lambda proxy rises with informed flow)",
+    "operational_value": "scale down urgency when impact proxy spikes",
+    "execution_implication": "aggressive entries increase implementation shortfall under low resiliency",
+    "contradiction_awareness": "breakout signal conflicts with rising impact cost",
+    "runtime_relevance": "map slippage_spike_ratio to adverse_selection_cost activation",
+    "failure_awareness": "paper portfolio fills at decision price; live fills drift — Perold IS",
+    "uncertainty": 0.35,
+    "decay_half_life_bars": 48,
+    "replay_verification_required": true
+  },
+  {
+    "relation_id": "MS_AMIHUD_001",
+    "from_behavior": "volume_thinning",
+    "to_behavior": "illiquidity_premium_risk",
+    "weight": 0.78,
+    "regimes": ["RANGING", "TRANSITIONAL"],
+    "source": "Amihud (2002) JFM",
+    "measurable_implication": "|return|/dollar_volume ratio elevation",
+    "operational_value": "reduce size when vol/baseline ratio < 0.15 (fill degradation proxy)",
+    "execution_implication": "missed trade opportunity cost rises in illiquid bars",
+    "contradiction_awareness": "stable structure label vs rising illiquidity ratio",
+    "runtime_relevance": "fill_degradation_vol_ratio binds to volume_thinning",
+    "failure_awareness": "limit-order illusion — good average price hides unfilled intent (Hasbrouck TCA)",
+    "uncertainty": 0.4,
+    "decay_half_life_bars": 72,
+    "replay_verification_required": true
+  },
+  {
+    "relation_id": "MS_GLM_001",
+    "from_behavior": "informed_trading_presence",
+    "to_behavior": "spread_widening",
+    "weight": 0.81,
+    "regimes": ["*"],
+    "source": "Glosten-Milgrom (1985)",
+    "measurable_implication": "bid-ask spread expands when adverse selection probability rises",
+    "operational_value": "halt new entries when spread_spike guard fails",
+    "execution_implication": "market maker widens quotes — execution cost non-linear",
+    "contradiction_awareness": "tradable flag vs spread guard fail",
+    "runtime_relevance": "spread_guard high-low range median mult > 4",
+    "failure_awareness": "continuing to trade into widened spread doubles IS delay + impact",
+    "uncertainty": 0.32,
+    "decay_half_life_bars": 24,
+    "replay_verification_required": true
+  }
+]

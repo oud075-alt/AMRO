@@ -1,0 +1,9 @@
+[
+  {
+    "similarity_id": "SIM_001",
+    "current_pattern": "panic_reversal",
+    "historical_match": "panic_sequence_2022",
+    "similarity_score": 0.74,
+    "historical_outcome": "violent reversal"
+  }
+]

@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AMRO Sandbox — Minimal Candlestick (ECharts)</title>
+  <style>
+    :root{
+      --bg:#070d17;
+      --card:#0b1526;
+      --border:rgba(59,130,246,0.18);
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --blue:#3b82f6;
+      --grid:rgba(255,255,255,0.05);
+    }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+    .wrap{height:100%;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;}
+    .card{
+      width:min(1100px, 100%);
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0)) , var(--card);
+      border:1px solid var(--border);
+      box-shadow:0 24px 70px rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+    .hdr{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:16px 18px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .title{font-weight:900;letter-spacing:.02em;}
+    .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+    .left{display:flex;flex-direction:column;}
+    .tf{display:flex;gap:8px;align-items:center;}
+    .tf button{
+      appearance:none;border:1px solid rgba(255,255,255,.10);
+      background:rgba(5,10,20,.35);
+      color:var(--muted);
+      padding:7px 10px;border-radius:12px;
+      font-size:12px;font-weight:800;letter-spacing:.06em;
+      cursor:pointer;
+    }
+    .tf button.active{
+      color:#cfe3ff;
+      border-color:rgba(59,130,246,.32);
+      background:rgba(37,99,235,.16);
+      box-shadow:0 0 22px rgba(59,130,246,.18);
+    }
+    #chart{height:520px;width:100%;position:relative;}
+    .err{
+      display:none;
+      position:absolute; inset:0;
+      align-items:center; justify-content:center;
+      padding:18px;
+      background:rgba(7,13,23,.6);
+      backdrop-filter: blur(6px);
+      color:#e5e7eb;
+      font-size:13px;
+      text-align:center;
+      line-height:1.6;
+    }
+    .err b{color:#cfe3ff}
+    .foot{
+      padding:10px 18px;
+      border-top:1px solid rgba(255,255,255,.06);
+      color:var(--muted);
+      font-size:12px;
+      display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    }
+    code{color:#cfe3ff}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="hdr">
+        <div class="left">
+          <div class="title">Minimal Candlestick</div>
+          <div class="sub">Apache ECharts — minimal UI, inside zoom, clean axis</div>
+        </div>
+        <div class="tf" role="group" aria-label="Timeframes">
+          <button data-tf="15m">15m</button>
+          <button data-tf="1h" class="active">1H</button>
+          <button data-tf="4h">4H</button>
+          <button data-tf="1d">1D</button>
+        </div>
+      </div>
+
+      <div id="chart">
+        <div class="err" id="errBox">
+          <div>
+            <b>Chart failed to load.</b><br/>
+            ECharts library didn’t load or initialized before layout was ready.<br/>
+            Try hard refresh (Ctrl+F5) or check DevTools Console for blocked CDN.
+          </div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <div>Tip: mousewheel/trackpad to zoom, drag to pan (inside zoom).</div>
+        <div>Open: <code>/static/sandbox-minimal-echarts.html</code></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CDN primary + fallback -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <script>
+    if (!window.echarts) {
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/echarts@5/dist/echarts.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
+
+  <script>
+    function showErr(msg) {
+      const errBox = document.getElementById('errBox');
+      if (!errBox) return;
+      errBox.style.display = 'flex';
+      if (msg) errBox.innerHTML = '<div><b>Chart failed to load.</b><br/>' + msg + '</div>';
+    }
+
+    async function waitForLib(maxMs=4000) {
+      const start = Date.now();
+      while (!window.echarts) {
+        if (Date.now() - start > maxMs) return false;
+        await new Promise(r => setTimeout(r, 50));
+      }
+      return true;
+    }
+
+    function genOHLC(seed, bars, stepMs) {
+      let p = seed;
+      const out = [];
+      const cats = [];
+      const start = Date.now() - bars * stepMs;
+      for (let i = 0; i < bars; i++) {
+        const t = start + i * stepMs;
+        const d = new Date(t);
+        const label = `${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')} ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
+        cats.push(label);
+
+        const drift = (Math.sin(i/9) + Math.cos(i/17)) * 0.7;
+        const noise = (Math.random() - 0.5) * 2.6;
+        const open = p;
+        const close = open + drift + noise;
+        const high = Math.max(open, close) + Math.random() * 2.2;
+        const low  = Math.min(open, close) - Math.random() * 2.2;
+        out.push([+open.toFixed(2), +close.toFixed(2), +low.toFixed(2), +high.toFixed(2)]);
+        p = close;
+      }
+      return { cats, ohlc: out };
+    }
+
+    const seriesByTF = {
+      '15m': { bars: 240, stepMs: 15*60*1000 },
+      '1h':  { bars: 240, stepMs: 60*60*1000 },
+      '4h':  { bars: 240, stepMs: 4*60*60*1000 },
+      '1d':  { bars: 240, stepMs: 24*60*60*1000 },
+    };
+
+    function calcSMA(values, period=20) {
+      const out = [];
+      let sum = 0;
+      for (let i=0;i<values.length;i++){
+        sum += values[i];
+        if (i >= period) sum -= values[i-period];
+        out.push(i >= period-1 ? +(sum/period).toFixed(2) : null);
+      }
+      return out;
+    }
+
+    let chart;
+    function render(tf) {
+      const el = document.getElementById('chart');
+      const cfg = seriesByTF[tf] || seriesByTF['1h'];
+      const { cats, ohlc } = genOHLC(100, cfg.bars, cfg.stepMs);
+      const closes = ohlc.map(v => v[1]);
+      const sma20 = calcSMA(closes, 20);
+
+      const option = {
+        backgroundColor: '#0b1526',
+        animation: false,
+        grid: { left: 14, right: 14, top: 12, bottom: 28, containLabel: true },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'cross' },
+          backgroundColor: 'rgba(7,13,23,0.92)',
+          borderColor: 'rgba(255,255,255,0.10)',
+          textStyle: { color: '#e5e7eb' }
+        },
+        axisPointer: {
+          label: { backgroundColor: 'rgba(7,13,23,0.92)' },
+          lineStyle: { color: 'rgba(148,163,184,0.6)' },
+          crossStyle: { color: 'rgba(148,163,184,0.4)' }
+        },
+        xAxis: {
+          type: 'category',
+          data: cats,
+          boundaryGap: true,
+          axisLine: { lineStyle: { color: 'rgba(255,255,255,0.08)' } },
+          axisTick: { show: false },
+          axisLabel: { color: '#94a3b8', fontSize: 11, margin: 10 },
+          splitLine: { show: false }
+        },
+        yAxis: {
+          scale: true,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { color: '#94a3b8', fontSize: 11, margin: 10 },
+          splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }
+        },
+        dataZoom: [
+          { type: 'inside', xAxisIndex: 0, filterMode: 'none', minValueSpan: 20 },
+        ],
+        series: [
+          {
+            type: 'candlestick',
+            name: 'Price',
+            data: ohlc,
+            itemStyle: {
+              color: '#54ea92',       // up
+              color0: '#f64e56',      // down
+              borderColor: '#54ea92',
+              borderColor0: '#f64e56'
+            }
+          },
+          {
+            type: 'line',
+            name: 'SMA20',
+            data: sma20,
+            showSymbol: false,
+            lineStyle: { width: 2, color: 'rgba(59,130,246,0.9)' },
+            emphasis: { disabled: true }
+          }
+        ]
+      };
+
+      if (!chart) chart = echarts.init(el, null, { renderer: 'canvas' });
+      chart.setOption(option, true);
+    }
+
+    function setActive(tf){
+      document.querySelectorAll('.tf button').forEach(b => b.classList.toggle('active', b.dataset.tf === tf));
+      render(tf);
+    }
+
+    document.querySelectorAll('.tf button').forEach(btn => {
+      btn.addEventListener('click', () => setActive(btn.dataset.tf));
+    });
+
+    async function boot(){
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const ok = await waitForLib();
+      if (!ok) {
+        showErr('CDN blocked/unavailable. Try another network or open DevTools → Console to see the blocked request.');
+        return;
+      }
+      try {
+        setActive('1h');
+        window.addEventListener('resize', () => chart && chart.resize());
+      } catch (e) {
+        console.error(e);
+        showErr((e && e.message) ? e.message : 'Unknown error');
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>
+

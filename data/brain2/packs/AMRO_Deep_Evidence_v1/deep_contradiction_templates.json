@@ -1,0 +1,68 @@
+[
+  {
+    "contradiction_id": "DEEP_CONTRA_MICRO_001",
+    "observed_conflict": ["breakout signal active", "spread guard fail", "rising adverse selection"],
+    "behavioral_interpretation": "informed flow may front-run visible breakout",
+    "governance_note": "block participation upgrade — microstructure rejects narrative",
+    "severity_prior": 0.78,
+    "source": "Glosten-Milgrom adverse selection",
+    "measurable_trigger": "spread_spike AND edge_strength>0.4",
+    "uncertainty": 0.33,
+    "decay_half_life_bars": 24
+  },
+  {
+    "contradiction_id": "DEEP_CONTRA_EXEC_001",
+    "observed_conflict": ["governance lean favorable", "slippage spike", "fill degradation"],
+    "behavioral_interpretation": "implementation shortfall dominates theoretical edge",
+    "governance_note": "execution pathology overrides signal confidence",
+    "severity_prior": 0.82,
+    "source": "Perold implementation shortfall",
+    "measurable_trigger": "NOT exec_guards_ok AND structure_confidence>0.5",
+    "uncertainty": 0.25,
+    "decay_half_life_bars": 12
+  },
+  {
+    "contradiction_id": "DEEP_CONTRA_REPLAY_001",
+    "observed_conflict": ["replay signature stable historically", "live edge signature mismatch"],
+    "behavioral_interpretation": "live microstructure diverged from replay expectation",
+    "governance_note": "reduce semantic confidence — replay verification failed",
+    "severity_prior": 0.71,
+    "source": "runtime replay validator",
+    "measurable_trigger": "replay_mismatch=true",
+    "uncertainty": 0.4,
+    "decay_half_life_bars": 96
+  },
+  {
+    "contradiction_id": "DEEP_CONTRA_NOISE_001",
+    "observed_conflict": ["continuation probability elevated", "noise trader risk elevated", "limits to arbitrage"],
+    "behavioral_interpretation": "price can diverge from structure before mean reversion",
+    "governance_note": "standby — mispricing may widen before correction",
+    "severity_prior": 0.69,
+    "source": "De Long-Shleifer-Summers-Waldmann (1990)",
+    "measurable_trigger": "entropy>0.6 AND synthetic_similarity>0.55",
+    "uncertainty": 0.45,
+    "decay_half_life_bars": 72
+  },
+  {
+    "contradiction_id": "DEEP_CONTRA_LIQ_001",
+    "observed_conflict": ["liquidity stress memory", "continuation narrative", "volatility expansion"],
+    "behavioral_interpretation": "volatility-liquidity feedback loop — resiliency collapse",
+    "governance_note": "reduce exposure — liquidity collapse pattern",
+    "severity_prior": 0.75,
+    "source": "Funding liquidity / market liquidity structural models",
+    "measurable_trigger": "instability>0.65 AND NOT spread_ok",
+    "uncertainty": 0.36,
+    "decay_half_life_bars": 36
+  },
+  {
+    "contradiction_id": "DEEP_CONTRA_REGIME_001",
+    "observed_conflict": ["prior regime semantic stable", "distribution_shift elevated", "edge environment weak"],
+    "behavioral_interpretation": "cross-regime semantic shift in progress",
+    "governance_note": "wait confirmation — regime mutation",
+    "severity_prior": 0.67,
+    "source": "regime-switching microstructure literature",
+    "measurable_trigger": "distribution_shift>0.45 AND environment_quality<0.4",
+    "uncertainty": 0.42,
+    "decay_half_life_bars": 120
+  }
+]

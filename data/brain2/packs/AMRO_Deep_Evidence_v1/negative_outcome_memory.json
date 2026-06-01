@@ -1,0 +1,41 @@
+[
+  {
+    "failure_id": "NEG_IS_BLOWOUT_001",
+    "failure_mode": "implementation_shortfall_blowout",
+    "trigger_pattern": ["slippage_spike", "latency_instability", "forced_urgency"],
+    "negative_outcome": "edge captured on chart lost to execution drag",
+    "operational_lesson": "fail-closed on dual execution guard failure before size increase",
+    "measurable_implication": "IS components dominate when guards fail concurrently",
+    "source": "Perold (1988); institutional TCA practice",
+    "semantic_weight": 0.85,
+    "confidence_decay_bars": 24,
+    "uncertainty": 0.22,
+    "replay_verification_required": true
+  },
+  {
+    "failure_id": "NEG_NOISE_TRAP_001",
+    "failure_mode": "noise_trader_risk_trap",
+    "trigger_pattern": ["high_entropy", "edge_without_structure", "crowd_chase"],
+    "negative_outcome": "mispricing widens before arbitrage can correct — forced liquidation",
+    "operational_lesson": "structure_confidence gate before continuation upgrade",
+    "measurable_implication": "excess volatility without fundamental anchor",
+    "source": "De Long et al. (1990) JPE",
+    "semantic_weight": 0.79,
+    "confidence_decay_bars": 72,
+    "uncertainty": 0.44,
+    "replay_verification_required": true
+  },
+  {
+    "failure_id": "NEG_REPLAY_DRIFT_001",
+    "failure_mode": "replay_live_semantic_drift",
+    "trigger_pattern": ["replay_signature_mismatch", "stable_governance_history"],
+    "negative_outcome": "confidence anchored to stale replay — live behavior diverges",
+    "operational_lesson": "decay semantic confidence on replay_mismatch regardless of prior approval",
+    "measurable_implication": "signature delta without magnitude still indicates drift risk",
+    "source": "runtime validation + microstructure regime shift",
+    "semantic_weight": 0.73,
+    "confidence_decay_bars": 96,
+    "uncertainty": 0.48,
+    "replay_verification_required": true
+  }
+]

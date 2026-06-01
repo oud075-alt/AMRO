@@ -1,0 +1,13 @@
+[
+  {
+    "event_id": "SPR_001",
+    "spread_state": "rapid_expansion",
+    "market_condition": "liquidity_stress",
+    "emotion_mapping": "fear_instability",
+    "execution_risk": "high",
+    "failure_mode": [
+      "slippage escalation",
+      "false continuation"
+    ]
+  }
+]

@@ -1,0 +1,110 @@
+[
+  {
+    "emotion_id": "fear",
+    "label_th": "ความกลัว",
+    "label_en": "fear",
+    "signals": {
+      "instability_min": 0.45,
+      "entropy_min": 0.45,
+      "impact_stress_min": 0.25,
+      "structure_confidence_max": 0.45
+    },
+    "weights": {
+      "instability": 0.35,
+      "entropy": 0.25,
+      "impact_stress": 0.25,
+      "low_structure": 0.15
+    },
+    "outcome_hint": "panic continuation or violent reversal — probabilistic",
+    "source": "AMRO_Market_Vision_KB_v1/fear_behavior.md"
+  },
+  {
+    "emotion_id": "greed",
+    "label_th": "ความโลภ",
+    "label_en": "greed",
+    "signals": {
+      "continuation_min": 0.45,
+      "structure_confidence_min": 0.4,
+      "crowd_pressure_min": 0.35,
+      "synthetic_similarity_max": 0.65
+    },
+    "weights": {
+      "continuation": 0.35,
+      "crowd_pressure": 0.3,
+      "edge_strength": 0.2,
+      "low_pullback_proxy": 0.15
+    },
+    "outcome_hint": "FOMO chase or exhaustion trap — probabilistic",
+    "source": "AMRO_Market_Vision_KB_v1/greed_behavior.md"
+  },
+  {
+    "emotion_id": "panic",
+    "label_th": "ความตื่นตระหนก",
+    "label_en": "panic",
+    "signals": {
+      "instability_min": 0.55,
+      "impact_stress_min": 0.35,
+      "drawdown_min": 0.08,
+      "exec_fragility_min": 0.5
+    },
+    "weights": {
+      "instability": 0.3,
+      "impact_stress": 0.25,
+      "drawdown": 0.2,
+      "panic_acceleration": 0.25
+    },
+    "outcome_hint": "disorderly move or forced liquidation — probabilistic",
+    "source": "AMRO_Market_Vision_KB_v1/panic_behavior.md"
+  },
+  {
+    "emotion_id": "hesitation",
+    "label_th": "ความลังเล",
+    "label_en": "hesitation",
+    "signals": {
+      "instability_max": 0.45,
+      "structure_confidence_min": 0.35,
+      "continuation_max": 0.5
+    },
+    "weights": {
+      "compression_proxy": 0.4,
+      "low_continuation": 0.35,
+      "moderate_entropy": 0.25
+    },
+    "outcome_hint": "compression or fakeout preparation — probabilistic",
+    "source": "AMRO_Market_Vision_KB_v1/hesitation_behavior.md"
+  },
+  {
+    "emotion_id": "exhaustion",
+    "label_th": "ความเหนื่อยล้า",
+    "label_en": "exhaustion",
+    "signals": {
+      "exhaustion_probability_min": 0.4,
+      "continuation_max": 0.45
+    },
+    "weights": {
+      "exhaustion_probability": 0.45,
+      "low_structure": 0.25,
+      "mutation_drift": 0.3
+    },
+    "outcome_hint": "continuation weakening — probabilistic",
+    "source": "AMRO_Market_Vision_KB_v1/market_emotion_taxonomy.md"
+  },
+  {
+    "emotion_id": "aggression",
+    "label_th": "ความก้าวร้าว/โกรธ",
+    "label_en": "aggression",
+    "signals": {
+      "signed_pressure_min": 0.35,
+      "instability_min": 0.4,
+      "distribution_shift_min": 0.45
+    },
+    "weights": {
+      "signed_pressure": 0.35,
+      "instability": 0.25,
+      "distribution_shift": 0.2,
+      "vol_asymmetry": 0.2
+    },
+    "outcome_hint": "aggressive rejection or one-sided flow — probabilistic",
+    "source": "AMRO_Market_Vision_KB_v1/volatility_emotion.md"
+  }
+]

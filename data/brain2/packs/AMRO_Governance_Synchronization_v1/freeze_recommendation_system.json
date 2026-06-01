@@ -1,0 +1,12 @@
+[
+  {
+    "freeze_id": "FREEZE_001",
+    "trigger_conditions": [
+      "panic acceleration",
+      "execution degradation",
+      "contradiction escalation"
+    ],
+    "recommended_mode": "defensive_freeze",
+    "risk_state": "critical"
+  }
+]

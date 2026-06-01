@@ -1,0 +1,4028 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMRO — AI Trading Intelligence</title>
+<!-- PocketBase JS SDK (local first — avoids CDN tracking-prevention blocks) -->
+<script src="vendor/pocketbase.umd.js"></script>
+<script>
+if (!window.PocketBase) {
+  document.write('<script src="https://cdn.jsdelivr.net/npm/pocketbase@0.21.3/dist/pocketbase.umd.js"><\/script>');
+}
+</script>
+<!-- Inter + JetBrains Mono fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  /* Backgrounds */
+  --bg:          #030712;
+  --bg-grad:     radial-gradient(circle at top left, #07111f 0%, #050b16 35%, #030712 100%);
+  --panel:       rgba(10,18,35,0.92);
+  --surface:     #08101d;
+  --surface2:    #0b1526;
+  --surface3:    rgba(10,18,35,0.95);
+  --border:      rgba(70,120,255,0.14);
+  --border-glow: rgba(59,130,246,0.22);
+
+  /* Text */
+  --text:  #f8fafc;
+  --text2: #94a3b8;
+  --muted: #64748b;
+
+  /* Brand */
+  --blue:     #3b82f6;
+  --blue2:    #2563eb;
+  --blue-dim: #1d3a6e;
+  --blue-glow:rgba(37,99,235,0.10);
+
+  /* Signal green */
+  --green:     #22c55e;
+  --green2:    #16a34a;
+  --green-dim: rgba(34,197,94,0.12);
+
+  /* Alerts */
+  --red:    #ef4444;
+  --red-dim:#7f1d1d;
+  --orange: #f59e0b;
+  --purple: #a78bfa;
+  --purple-dim:#3b1f6e;
+
+  /* Shadows */
+  --shadow-card: 0 0 0 1px rgba(59,130,246,0.12), 0 10px 40px rgba(0,0,0,0.45), 0 0 30px rgba(37,99,235,0.08);
+  --shadow-glow: 0 0 40px rgba(59,130,246,0.12);
+  --radius-card: 18px;
+  --radius-sm:   12px;
+  --gap:         20px;
+}
+body {
+  font-family:'Inter','Segoe UI',system-ui,sans-serif;
+  background:var(--bg-grad);
+  background-attachment:fixed;
+  color:var(--text);
+  min-height:100vh;
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+/* Global premium scrollbar */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(59,130,246,0.18); border-radius:4px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(59,130,246,0.32); }
+* { scrollbar-width:thin; scrollbar-color:rgba(59,130,246,0.18) transparent; }
+a { color:var(--blue); text-decoration:none; }
+button { cursor:pointer; font-family:inherit; }
+
+/* Navbar */
+.navbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px; height:61px;
+  background:rgba(5,10,20,0.96);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  position:sticky; top:0; z-index:100;
+  backdrop-filter:blur(16px);
+  box-shadow:0 1px 0 rgba(59,130,246,0.08);
+}
+.logo { display:flex; align-items:center; gap:10px; cursor:pointer; }
+.logo-icon {
+  width:34px; height:34px; border-radius:9px;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900; font-size:14px; color:white;
+  box-shadow:0 0 16px rgba(37,99,235,0.35);
+}
+.logo-text { font-weight:800; font-size:15px; letter-spacing:2px; color:var(--text); }
+.logo-sub  { font-size:9px; color:var(--muted); letter-spacing:1.5px; }
+.nav-right { display:flex; align-items:center; gap:10px; }
+.nav-tier { font-size:11px; padding:3px 10px; border-radius:20px; font-weight:700; display:none; }
+.tier-free { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+.tier-subscription { background:var(--blue-dim); color:#93c5fd; border:1px solid #2563eb; }
+.tier-premium { background:var(--purple-dim); color:var(--purple); border:1px solid #7c3aed; }
+.btn { padding:8px 18px; border-radius:8px; font-size:13px; font-weight:600; border:none; transition:all .2s ease; letter-spacing:.3px; }
+.btn:hover { transform:translateY(-1px); }
+.btn-primary {
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  color:white;
+  box-shadow:0 4px 16px rgba(37,99,235,0.30);
+}
+.btn-primary:hover { box-shadow:0 6px 24px rgba(37,99,235,0.40); }
+.btn-outline {
+  background:transparent; color:var(--text2);
+  border:1px solid rgba(255,255,255,0.10);
+}
+.btn-outline:hover { border-color:var(--border-glow); color:var(--text); }
+.btn-google { display:flex; align-items:center; gap:8px; background:white; color:#1a1a1a; padding:8px 16px; border-radius:8px; border:none; font-size:13px; font-weight:600; }
+.btn-google svg { width:18px; height:18px; flex-shrink:0; }
+
+/* Toast */
+.toast { position:fixed; bottom:24px; right:24px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 18px; font-size:13px; z-index:9999; transform:translateY(80px); opacity:0; transition:all .3s; max-width:320px; }
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.success { border-color:var(--green); }
+.toast.error   { border-color:var(--red); }
+
+/* Loading overlay */
+.loading-overlay { position:fixed; inset:0; background:rgba(10,14,26,.8); z-index:9000; display:none; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
+.loading-overlay.show { display:flex; }
+.spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* Pages */
+.page { display:none; }
+.page.active { display:block; }
+
+/* Landing */
+.hero { text-align:center; padding:80px 32px 60px; max-width:700px; margin:0 auto; }
+.hero-badge { display:inline-block; background:var(--blue-dim); color:#93c5fd; font-size:11px; font-weight:700; padding:4px 14px; border-radius:20px; letter-spacing:1px; text-transform:uppercase; margin-bottom:24px; border:1px solid #2563eb; }
+.hero h1 { font-size:42px; font-weight:800; line-height:1.2; margin-bottom:20px; }
+.hero h1 span { color:var(--blue); }
+.hero p { font-size:16px; color:var(--muted); line-height:1.7; margin-bottom:36px; }
+.hero-cta { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+.features { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; max-width:900px; margin:0 auto 60px; padding:0 32px; }
+.feature-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; }
+.feature-icon { font-size:24px; margin-bottom:10px; }
+.feature-title { font-weight:700; margin-bottom:6px; }
+.feature-desc { font-size:12px; color:var(--muted); line-height:1.5; }
+.pricing { max-width:900px; margin:0 auto 80px; padding:0 32px; }
+.pricing h2 { text-align:center; font-size:26px; font-weight:700; margin-bottom:8px; }
+.pricing-sub { text-align:center; color:var(--muted); font-size:14px; margin-bottom:32px; }
+.pricing-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.price-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; position:relative; }
+.price-card.featured { border-color:var(--blue); }
+.price-badge { position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:var(--blue); color:white; font-size:11px; font-weight:700; padding:2px 12px; border-radius:20px; }
+.price-tier { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:8px; }
+.price-amount { font-size:32px; font-weight:800; margin-bottom:4px; }
+.price-period { font-size:12px; color:var(--muted); margin-bottom:16px; }
+.price-items { list-style:none; margin-bottom:20px; }
+.price-items li { font-size:12px; padding:5px 0; color:var(--muted); display:flex; gap:8px; }
+.price-items li::before { content:'✓'; color:var(--green); font-weight:700; flex-shrink:0; }
+.price-items li.locked::before { content:'✗'; color:var(--border); }
+.price-items li.locked { opacity:.5; }
+
+/* Dashboard */
+/* .dashboard replaced by .main-content (sidebar layout) */
+.dash-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+.dash-title { font-size:22px; font-weight:800; letter-spacing:-.3px; background:linear-gradient(90deg,#f8fafc,#94a3b8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.dash-right { display:flex; align-items:center; gap:10px; }
+.dash-time { font-size:11px; color:var(--muted); font-family:'JetBrains Mono','Fira Code',monospace; letter-spacing:.04em; }
+.btn-refresh {
+  background:transparent; border:1px solid rgba(255,255,255,0.08);
+  color:#64748b; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600;
+  letter-spacing:.02em; transition:color .15s, border-color .15s;
+}
+.btn-refresh:hover { background:rgba(255,255,255,0.04); border-color:rgba(255,255,255,0.14); color:#94a3b8; }
+.symbol-bar { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
+.sym-btn { padding:6px 16px; border-radius:6px; font-size:13px; font-weight:600; background:var(--surface); border:1px solid var(--border); color:var(--muted); transition:all .15s; }
+.sym-btn.active, .sym-btn:hover { background:var(--blue-dim); border-color:var(--blue); color:#93c5fd; }
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+.stat-card {
+  background:linear-gradient(180deg,rgba(10,18,35,0.95),rgba(7,12,24,0.95));
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:16px 18px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.35);
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.stat-card:hover { transform:translateY(-2px); box-shadow:0 12px 40px rgba(0,0,0,0.45),0 0 0 1px rgba(59,130,246,0.10); }
+.stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+.stat-value { font-size:24px; font-weight:800; }
+.stat-sub { font-size:11px; color:var(--muted); margin-top:4px; }
+.text-green  { color:var(--green);  }
+.text-red    { color:var(--red);    }
+.text-orange { color:var(--orange); }
+.text-blue   { color:var(--blue);   }
+.text-purple { color:var(--purple); }
+/* Direction glow on large text */
+.signal-direction.text-green { text-shadow:0 0 24px rgba(34,197,94,0.40); }
+.signal-direction.text-red   { text-shadow:0 0 24px rgba(239,68,68,0.40); }
+.main-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--gap); margin-bottom:var(--gap); }
+.card {
+  background:linear-gradient(180deg,rgba(10,18,35,0.95),rgba(7,12,24,0.95));
+  border:1px solid var(--border);
+  border-radius:var(--radius-card);
+  padding:20px;
+  box-shadow:var(--shadow-card);
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+.card:hover { transform:translateY(-2px); box-shadow:var(--shadow-card),var(--shadow-glow); }
+.card-title { font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; margin-bottom:16px; opacity:.8; }
+.signal-direction { font-size:34px; font-weight:900; letter-spacing:2px; margin-bottom:4px; line-height:1; }
+.signal-price { font-size:18px; font-weight:700; margin-bottom:12px; font-family:'JetBrains Mono','Fira Code',monospace; letter-spacing:.04em; }
+.confidence-bar-wrap { margin-bottom:12px; }
+.confidence-label { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:6px; }
+.confidence-bar { height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+.confidence-fill { height:100%; border-radius:4px; transition:width 1s ease; }
+.blurred-value { filter:blur(6px); user-select:none; }
+.lock-hint { font-size:11px; color:var(--orange); margin-top:8px; display:flex; align-items:center; gap:6px; }
+.reasons { list-style:none; }
+.reasons li { font-size:12px; color:var(--muted); padding:5px 0; border-bottom:1px solid var(--border); display:flex; gap:8px; line-height:1.4; }
+.reasons li:last-child { border-bottom:none; }
+.reasons li::before { content:'·'; color:var(--blue); font-size:16px; line-height:1; flex-shrink:0; }
+.regime-badge { display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:8px; font-weight:700; font-size:14px; margin-bottom:12px; }
+.regime-trending-up { background:var(--green-dim); color:var(--green); border:1px solid #16a34a; }
+.regime-trending-down { background:var(--red-dim); color:var(--red); border:1px solid #dc2626; }
+.regime-ranging { background:#1c1700; color:var(--orange); border:1px solid #b45309; }
+.regime-volatile { background:#2d1a00; color:#fb923c; border:1px solid #ea580c; }
+.regime-breakout { background:var(--purple-dim); color:var(--purple); border:1px solid #7c3aed; }
+.regime-unknown { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+.regime-desc { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:12px; }
+.advice-box { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.5; }
+.advice-label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+.verdict-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:8px; font-weight:700; font-size:13px; margin-bottom:12px; }
+.verdict-valid { background:var(--green-dim); color:var(--green); }
+.verdict-weak { background:#1c1700; color:var(--orange); }
+.verdict-conflicted { background:var(--red-dim); color:var(--red); }
+.verdict-invalid { background:#1a0000; color:#f87171; }
+.trust-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.trust-score { font-size:28px; font-weight:800; }
+.trust-label { font-size:11px; color:var(--muted); }
+.audit-section { margin-bottom:10px; }
+.audit-section-title { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-bottom:8px; opacity:.75; }
+.audit-items { list-style:none; }
+.audit-items li { font-size:12px; color:var(--muted); padding:3px 0; display:flex; gap:6px; }
+.confirm-item::before { content:'✓'; color:var(--green); font-weight:700; }
+.conflict-item::before { content:'⚠'; color:var(--orange); }
+.upgrade-banner { background:linear-gradient(135deg,#1d3a6e,#2e1065); border:1px solid var(--blue); border-radius:12px; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:16px; }
+.upgrade-text h3 { font-size:15px; font-weight:700; margin-bottom:4px; }
+.upgrade-text p { font-size:12px; color:#93c5fd; }
+.btn-upgrade { background:var(--blue); color:white; padding:10px 20px; border-radius:8px; border:none; font-weight:700; font-size:13px; white-space:nowrap; cursor:pointer; }
+.metrics-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.metric-item { background:var(--surface2); border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; }
+.metric-key { font-size:11px; color:var(--muted); }
+.metric-val { font-size:13px; font-weight:700; }
+.delayed-banner { background:#1c1000; border:1px solid #78350f; border-radius:8px; padding:10px 14px; font-size:12px; color:var(--orange); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.error-banner { background:#1a0000; border:1px solid var(--red); border-radius:8px; padding:12px 16px; font-size:13px; color:#fca5a5; margin-bottom:16px; }
+.hidden { display:none !important; }
+.mt-16 { margin-top:16px; }
+.text-muted-val { color:var(--muted); }
+.abstain-badge { display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:8px; font-weight:800; font-size:16px; background:var(--surface2); color:var(--muted); border:1px solid var(--border); margin-bottom:10px; letter-spacing:1px; }
+.gov-reason-box { font-size:11px; color:var(--orange); background:#1c1000; border:1px solid #78350f; border-radius:6px; padding:8px 12px; margin-bottom:10px; line-height:1.6; word-break:break-all; }
+.gov-approved-box { font-size:11px; color:var(--green); background:var(--green-dim); border:1px solid #16a34a; border-radius:6px; padding:6px 12px; margin-bottom:10px; }
+.audit-scores-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }
+.audit-score-item { background:var(--surface2); border-radius:6px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center; }
+.audit-score-key { font-size:10px; color:var(--muted); }
+.audit-score-val { font-size:12px; font-weight:700; }
+.brain-votes-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.brain-vote { padding:3px 10px; border-radius:4px; font-size:11px; font-weight:700; }
+.brain-vote-long { background:var(--green-dim); color:var(--green); border:1px solid #16a34a; }
+.brain-vote-short { background:var(--red-dim); color:var(--red); border:1px solid #dc2626; }
+.brain-vote-abstain { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+.brain-vote-neutral { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+.risk-normal { color:var(--green); }
+.risk-defensive { color:var(--orange); }
+.risk-no-trade { color:var(--muted); }
+.audit-skipped-box { text-align:center; padding:16px 0; color:var(--muted); font-size:12px; }
+
+/* Position Calculator */
+.calc-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.calc-field { display:flex; flex-direction:column; gap:4px; }
+.calc-label { font-size:10px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+.calc-input-wrap { display:flex; align-items:center; background:var(--surface2); border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.calc-input { background:transparent; border:none; outline:none; color:var(--text); font-size:14px; font-weight:700; padding:8px 10px; width:100%; font-family:inherit; }
+.calc-input:focus { border-color:var(--blue); }
+.calc-unit { font-size:11px; color:var(--muted); padding:0 8px; white-space:nowrap; }
+.calc-entry-bar { display:flex; justify-content:space-between; align-items:center; background:var(--surface2); border-radius:6px; padding:6px 10px; margin-bottom:10px; font-size:12px; }
+.calc-results { border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+.calc-result-row { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid var(--border); }
+.calc-result-row:last-child { border-bottom:none; }
+.calc-result-label { font-size:11px; color:var(--muted); }
+.calc-result-val { font-size:15px; font-weight:800; }
+.calc-result-divider { height:1px; background:var(--border); margin:0; }
+.calc-lot-breakdown { font-size:10px; color:var(--muted); text-align:center; margin-top:8px; line-height:1.6; }
+.calc-direction-toggle { display:flex; gap:6px; margin-bottom:10px; }
+.calc-dir-btn { flex:1; padding:5px; border-radius:5px; font-size:11px; font-weight:700; border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; }
+.calc-dir-btn.active-long { background:var(--green-dim); color:var(--green); border-color:#16a34a; }
+.calc-dir-btn.active-short { background:var(--red-dim); color:var(--red); border-color:#dc2626; }
+
+/* Candlestick Chart */
+.chart-card {
+  background:linear-gradient(180deg,rgba(10,18,35,0.97),rgba(6,11,22,0.97));
+  border:1px solid var(--border-glow);
+  border-radius:var(--radius-card);
+  padding:18px 22px;
+  margin-bottom:var(--gap);
+  box-shadow:var(--shadow-card);
+  transition:box-shadow .25s ease;
+}
+.chart-card:hover { box-shadow:var(--shadow-card),var(--shadow-glow); }
+.chart-interval-bar { display:none; }
+/* AMRO Context Panel (replaces TradingView chart) */
+.amro-context-panel {
+  flex:1; min-height:0; display:flex; flex-direction:column;
+  gap:0; overflow:hidden;
+}
+.acp-head {
+  flex-shrink:0;
+  position:relative;
+  z-index:2;
+  padding-bottom:12px;
+  margin-bottom:0;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  background:linear-gradient(180deg, #0b1526 0%, #0a1322 100%);
+}
+/* Position calculator — main ops column (moved from sidebar) */
+.ops-left-split {
+  min-height:0;
+  height:100%;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  border-right:1px solid rgba(255,255,255,0.05);
+}
+.ops-calculator {
+  min-height:0;
+  height:100%;
+  overflow-y:auto;
+  padding:12px 14px 10px;
+  scrollbar-width:thin;
+}
+.panel-calc-ops {
+  position:relative;
+  margin:0;
+  height:100%;
+  min-height:min(280px, 100%);
+  padding:0;
+  border:none;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.panel-calc-ops .panel-title { display:none; }
+.ops-calculator .ops-section-title { margin-bottom:10px; }
+.panel-calc-ops .calc-grid {
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.panel-calc-ops .calc-input { font-size:13px; padding:7px 9px; }
+.panel-calc-ops .calc-result-val { font-size:13px; }
+.panel-calc-ops .calc-entry-bar { font-size:12px; padding:6px 9px; }
+.panel-calc-ops .calc-dir-btn { font-size:11px; padding:6px; }
+.panel-calc-ops .calc-label { font-size:10px; }
+.panel-calc-ops .calc-result-label { font-size:10px; }
+.acp-head-row {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:6px 10px;
+  min-height:28px;
+  line-height:1.35;
+}
+.acp-asset {
+  margin:0;
+  flex:0 0 auto;
+  font-size:17px; font-weight:800; color:#f1f5f9;
+  letter-spacing:.05em; text-transform:uppercase;
+}
+.acp-head-sep {
+  flex:0 0 auto;
+  color:#475569;
+  font-size:14px;
+  font-weight:400;
+  line-height:1;
+  user-select:none;
+}
+.acp-exec-state {
+  flex:1 1 10rem;
+  min-width:0;
+  font-size:12px; font-weight:700;
+  line-height:1.35;
+  color:#94a3b8;
+  word-break:break-word;
+}
+.acp-exec-state.tone-valid { color:#86efac; }
+.acp-exec-state.tone-weak { color:#fcd34d; }
+.acp-exec-state.tone-blocked { color:#fda4af; }
+@media (max-width:520px) {
+  .acp-head-sep { display:none; }
+  .acp-exec-state {
+    flex:1 1 100%;
+    padding-left:0;
+    font-size:11px;
+  }
+}
+.gov-section-title {
+  font-size:10px; font-weight:800; text-transform:uppercase;
+  letter-spacing:.12em; color:#64748b; margin:0 0 12px;
+}
+.gov-state-block {
+  flex:1; display:flex; flex-direction:column; justify-content:flex-start;
+  min-height:0; overflow-y:auto;
+  padding:12px 0 16px;
+}
+.gov-conclusion-wrap {
+  margin-top:8px;
+  padding:12px 14px;
+  border-radius:12px;
+  background:rgba(5,10,20,0.45);
+  border:1px solid rgba(59,130,246,0.12);
+}
+.gov-conclusion-k {
+  font-size:9px; font-weight:800; letter-spacing:.12em;
+  text-transform:uppercase; color:#64748b; margin-bottom:6px;
+}
+.gov-conclusion {
+  font-size:15px; font-weight:700; line-height:1.35; color:#e2e8f0;
+}
+.gov-conclusion.tone-valid { color:#86efac; }
+.gov-conclusion.tone-blocked { color:#fda4af; }
+.gov-conclusion.tone-weak { color:#fcd34d; }
+.gov-conclusion-evidence {
+  margin-top:8px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  font-weight:600;
+  line-height:1.4;
+  color:#94a3b8;
+}
+.gov-conclusion-evidence.hidden { display:none; }
+.gov-integrity-block {
+  flex-shrink:0; margin-top:auto;
+  padding-top:16px; border-top:1px solid rgba(255,255,255,0.06);
+}
+.gov-integrity-fallback {
+  margin:0; font-size:12px; font-weight:500; color:#64748b;
+}
+.gov-integrity-list {
+  margin:8px 0 0; padding:0; list-style:none;
+}
+.gov-integrity-list li {
+  font-size:13px; font-weight:600; line-height:1.4;
+  padding:7px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.gov-integrity-list li:last-child { border-bottom:none; }
+.gov-integrity-list li.tone-integrity { color:#93c5fd; }
+.gov-integrity-list li.tone-weak { color:#fcd34d; }
+.gov-integrity-list li.tone-blocked { color:#fda4af; }
+.gov-integrity-list.hidden { display:none; }
+
+/* ══ Mission control surface — mockup-aligned ══ */
+.exec-strip {
+  display:grid;
+  grid-template-columns:minmax(148px, 180px) minmax(0, 1fr) minmax(150px, 220px);
+  align-items:center;
+  gap:12px 28px;
+  min-height:96px;
+  max-height:108px;
+  padding:12px 20px;
+  margin:0 !important;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.06);
+  background:#0a0f18;
+  box-shadow:none;
+}
+.exec-strip-left {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.exec-ban-icon {
+  width:42px; height:42px; flex-shrink:0;
+  color:#f87171;
+}
+.exec-ban-stack { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.exec-strip-hero {
+  font-size:16px; font-weight:800; letter-spacing:.08em;
+  text-transform:uppercase; color:#f87171; line-height:1.1;
+}
+.exec-strip-blocked {
+  font-size:13px; font-weight:600; color:#94a3b8; line-height:1.2;
+}
+.market-decision-card.mdc-buy-favored .exec-strip-hero { color:#4ade80; }
+.market-decision-card.mdc-buy-favored .exec-ban-icon { color:#4ade80; }
+.market-decision-card.mdc-sell-favored .exec-strip-hero { color:#f87171; }
+.market-decision-card.mdc-no-trade .exec-strip-hero { color:#f87171; }
+.exec-strip-center { min-width:0; padding-left:4px; }
+.exec-strip-k {
+  font-size:11px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:#64748b; margin-bottom:4px;
+}
+.exec-strip-decision {
+  font-size:24px; font-weight:800; line-height:1.12;
+  color:#f8fafc; letter-spacing:-.02em;
+}
+.exec-strip-sub {
+  margin-top:3px;
+  font-size:14px; font-weight:500; line-height:1.35;
+  color:#94a3b8;
+}
+.exec-strip-risk {
+  min-width:0;
+  padding-left:14px;
+  border-left:1px solid rgba(255,255,255,0.05);
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  text-align:left;
+}
+.exec-strip-risk-k {
+  display:block;
+  width:100%;
+  font-size:11px; font-weight:700; letter-spacing:.12em;
+  text-transform:uppercase; color:#64748b;
+  margin:0 0 6px;
+  text-align:left;
+}
+.exec-risk-row {
+  display:flex;
+  align-items:flex-start;
+  justify-content:flex-start;
+  gap:8px;
+  width:100%;
+  max-width:100%;
+}
+.exec-risk-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:#f87171; flex-shrink:0; margin-top:5px;
+  box-shadow:0 0 6px rgba(248,113,113,0.5);
+}
+.exec-strip-risk-v {
+  flex:1;
+  min-width:0;
+  font-size:14px; font-weight:600; line-height:1.35;
+  color:#fda4af;
+  text-align:left;
+}
+
+.ops-surface {
+  min-height:0;
+  height:100%;
+  display:grid;
+  grid-template-columns:minmax(0, 2fr) minmax(0, 1fr);
+  gap:0;
+  overflow:hidden;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.06);
+  background:#0a0e14;
+  box-shadow:none;
+}
+.ops-governance {
+  min-height:0;
+  height:100%;
+  overflow-y:auto;
+  padding:12px 14px 10px;
+  border-right:1px solid rgba(255,255,255,0.05);
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  justify-content:flex-start;
+  scrollbar-width:thin;
+}
+.ops-environment {
+  min-height:0;
+  height:100%;
+  overflow-y:auto;
+  padding:12px 16px 10px;
+  display:flex;
+  flex-direction:column;
+  background:transparent;
+  scrollbar-width:thin;
+}
+.ops-section-title {
+  margin:0 0 10px;
+  font-size:11px; font-weight:800; letter-spacing:.14em;
+  text-transform:uppercase; color:#e2e8f0;
+}
+.ops-title-accent {
+  padding-bottom:5px;
+  margin-bottom:0 !important;
+  border-bottom:1px solid rgba(251,191,36,0.35);
+}
+.ops-section-title-dim { color:#94a3b8; font-size:11px; border-bottom:none; padding-bottom:0; }
+.gov-headline-row {
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin-bottom:0;
+}
+.gov-warn-icon {
+  width:34px; height:34px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:50%;
+  border:1px solid rgba(251,191,36,0.4);
+  color:#d97706;
+  font-size:15px; font-weight:800; line-height:1;
+}
+.gov-warn-icon.tone-valid { border-color:rgba(74,222,128,0.5); color:#4ade80; }
+.gov-warn-icon.tone-blocked { border-color:rgba(248,113,113,0.5); color:#f87171; }
+.gov-warn-icon.hidden { display:none; }
+.gov-conclusion-body { flex:1; min-width:0; }
+.gov-conclusion-block { flex:0 0 auto; }
+.gov-conclusion-block .gov-conclusion {
+  font-size:19px; font-weight:700; line-height:1.35;
+}
+.gov-evidence-caption {
+  margin:5px 0 0;
+  font-size:13px; font-weight:500; line-height:1.4;
+  color:#94a3b8;
+}
+.gov-evidence-caption.hidden { display:none; }
+.gov-denial-compact {
+  margin-top:6px;
+  padding:0;
+  border:none;
+  background:transparent;
+}
+.gov-denial-compact.hidden { display:none; }
+.gov-denial-primary {
+  font-size:14px; font-weight:600; line-height:1.45;
+  color:#e2e8f0;
+}
+.gov-denial-detail {
+  margin-top:4px;
+  font-size:13px; font-weight:500; line-height:1.4;
+  color:#94a3b8;
+}
+.gov-denial-detail.hidden { display:none; }
+.gov-evidence-box {
+  margin-top:6px;
+  padding:8px 10px;
+  border-radius:6px;
+  background:rgba(0,0,0,0.22);
+  border:1px solid rgba(255,255,255,0.03);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px 12px;
+}
+.gov-evidence-box.gov-evidence-compact {
+  grid-template-columns:1fr;
+  padding:9px 12px;
+}
+.gov-evidence-box.gov-evidence-compact .gov-metric-col .ev {
+  font-size:14px;
+}
+.gov-metric-col .ek {
+  display:block;
+  font-size:11px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:#64748b; margin-bottom:5px;
+}
+.gov-metric-col .ev {
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-size:22px; font-weight:800; line-height:1;
+}
+.gov-metric-col .ev.obs { color:#fcd34d; }
+.gov-metric-col .ev.req { color:#f1f5f9; }
+.gov-integrity-block {
+  margin-top:2px;
+  padding-top:8px;
+  border-top:1px solid rgba(255,255,255,0.03);
+}
+.gov-integrity-k {
+  font-size:10px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:#64748b;
+  margin-bottom:5px;
+}
+.ops-governance .gov-integrity-fallback {
+  font-size:13px; color:#64748b;
+}
+.ops-governance .gov-integrity-list li {
+  padding:4px 0;
+  font-size:13px;
+  font-weight:500;
+  border-bottom:none;
+}
+.ops-governance .gov-integrity-list li.tone-integrity { color:#7dd3fc; }
+.ops-governance .gov-integrity-list li.tone-weak { color:#78716c; }
+.ops-governance .gov-integrity-list li.tone-blocked { color:#9f8f8f; }
+.cognition-risk-block {
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid rgba(255,255,255,0.03);
+}
+.cognition-risk-k {
+  font-size:10px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:#64748b;
+  margin-bottom:6px;
+}
+.cognition-risk-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px 10px;
+}
+.cognition-risk-item {
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  min-width:0;
+}
+.cognition-risk-label {
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:#64748b;
+}
+.cognition-risk-value {
+  font-size:13px;
+  font-weight:600;
+  color:#cbd5e1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.cognition-risk-value.tone-low,
+.cognition-risk-value.tone-stable,
+.cognition-risk-value.tone-unknown { color:#94a3b8; }
+.cognition-risk-value.tone-moderate,
+.cognition-risk-value.tone-shifting,
+.cognition-risk-value.tone-watch { color:#fcd34d; }
+.cognition-risk-value.tone-elevated,
+.cognition-risk-value.tone-stressed,
+.cognition-risk-value.tone-unstable,
+.cognition-risk-value.tone-high { color:#fb923c; }
+.cognition-risk-value.tone-critical,
+.cognition-risk-value.tone-fragile,
+.cognition-risk-value.tone-mutating { color:#f87171; }
+.cognition-risk-fallback {
+  font-size:13px;
+  color:#64748b;
+}
+.env-lean-flat {
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin:0 0 10px;
+  padding:0 0 10px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.env-lean-flat.hidden { display:none; }
+.env-lean-icon {
+  width:20px; height:20px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:50%;
+  background:rgba(59,130,246,0.15);
+  color:#93c5fd;
+  font-size:11px; font-weight:800;
+}
+.env-lean-line1 {
+  font-size:13px; font-weight:600; color:#93c5fd; line-height:1.35;
+}
+.env-lean-line2 {
+  font-size:12px; font-weight:500; color:#64748b; margin-top:2px; line-height:1.35;
+}
+.ops-environment .audit-result-card {
+  gap:8px;
+  border:none;
+  background:transparent;
+  padding:0;
+  box-shadow:none;
+}
+.env-threshold-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:10px;
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid rgba(255,255,255,0.04);
+}
+.env-threshold-k {
+  font-size:10px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:#64748b;
+}
+.env-threshold-v {
+  font-size:14px; font-weight:800;
+}
+.env-threshold-v.tone-valid { color:#86efac; }
+.env-threshold-v.tone-blocked { color:#fda4af; }
+.env-threshold-v.tone-weak { color:#fcd34d; }
+.env-threshold-v.tone-unavailable { color:#94a3b8; }
+.ops-environment .audit-dir-label { font-size:11px; }
+.ops-environment .audit-dir-pct { font-size:19px; font-weight:800; }
+.ops-environment .audit-bias-label { font-size:11px; }
+.ops-environment .audit-bias-value { font-size:14px; }
+.ops-environment .audit-dir-bar-track { height:8px; }
+.ops-environment .panel-title,
+.ops-environment .panel-title-sub { display:none; }
+
+.telemetry-strip {
+  height:56px !important;
+  min-height:56px;
+  padding:0 10px !important;
+  grid-template-columns:repeat(3, 1fr) !important;
+  border-radius:8px;
+  background:#0a0f18;
+  border:1px solid rgba(255,255,255,0.04);
+  box-shadow:none;
+}
+.telemetry-strip .bm-cell {
+  padding:8px 14px;
+  flex-direction:row;
+  align-items:center;
+  gap:12px;
+  justify-content:flex-start;
+  border-right:1px solid rgba(255,255,255,0.04);
+}
+.telemetry-strip .bm-cell:last-child { border-right:none; }
+.telemetry-strip .bm-cell-inner {
+  display:flex; flex-direction:column; gap:3px; min-width:0;
+}
+.telemetry-strip .bm-label {
+  font-size:10px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:#64748b; line-height:1;
+}
+.telemetry-strip .bm-status {
+  font-size:14px; font-weight:700; line-height:1.1;
+  padding:0; background:none !important; border:none !important;
+}
+.bm-glyph {
+  width:34px; height:34px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:8px;
+  font-size:14px; line-height:1;
+}
+.bm-glyph svg { width:19px; height:19px; display:block; }
+.bm-glyph-health { position:relative; background:rgba(34,197,94,0.08); }
+.bm-glyph-health::after {
+  content:'';
+  width:10px; height:10px; border-radius:50%;
+  background:#4ade80;
+  box-shadow:0 0 8px rgba(74,222,128,0.45);
+}
+.bm-glyph-quality { color:#60a5fa; background:rgba(59,130,246,0.12); }
+.bm-glyph-pressure { color:#fbbf24; background:rgba(251,191,36,0.1); }
+.telemetry-strip .bm-status.bm-chip-stable,
+.telemetry-strip .bm-status.bm-chip-strong,
+.telemetry-strip .bm-status.bm-chip-active,
+.telemetry-strip .bm-status.bm-chip-low { color:#86efac; }
+.telemetry-strip .bm-status.bm-chip-neutral { color:#94a3b8; }
+.telemetry-strip .bm-status.bm-chip-degraded,
+.telemetry-strip .bm-status.bm-chip-moderate,
+.telemetry-strip .bm-status.bm-chip-limited,
+.telemetry-strip .bm-status.bm-chip-elevated { color:#fbbf24; }
+.telemetry-strip .bm-status.bm-chip-critical,
+.telemetry-strip .bm-status.bm-chip-high { color:#f87171; }
+.mc-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:0 4px;
+  font-size:12px;
+  font-weight:600;
+  color:#64748b;
+  letter-spacing:.02em;
+}
+.mc-footer-center { flex:1; text-align:center; color:#94a3b8; font-size:12px; }
+.mc-footer-ops {
+  display:inline-flex; align-items:center; gap:6px;
+  color:#86efac; font-weight:700;
+}
+.mc-ops-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:#4ade80;
+  box-shadow:0 0 6px rgba(74,222,128,0.5);
+}
+
+.audit-context-note.hidden { display:none; }
+.panel-audit.audit-superseded .audit-dir-block { opacity:0.45; }
+.panel-audit.audit-superseded .audit-bias-footer { opacity:0.45; }
+.panel-audit .panel-title-sub {
+  font-size:10px; font-weight:600; color:#64748b;
+  margin:-6px 0 10px; letter-spacing:.02em;
+}
+
+@media (max-width:768px) { .features,.pricing-grid,.stats-row,.main-grid,.metrics-grid { grid-template-columns:1fr; } .hero h1 { font-size:28px; } }
+
+/* ══════════════════════════════════════════════════════
+   PERMISSION-CENTRIC UI — AMRO Mission Control
+   ══════════════════════════════════════════════════════ */
+
+/* Level 1 — execution strip (layout owned by .exec-strip) */
+.exec-strip.market-decision-card {
+  display: grid !important;
+  grid-template-columns: minmax(148px, 180px) minmax(0, 1fr) minmax(150px, 220px) !important;
+  gap: 16px 24px !important;
+  margin-bottom: 0 !important;
+  overflow: visible;
+  transition: border-color 0.25s ease;
+}
+.market-decision-card {
+  border-radius: var(--radius-card);
+  border: 1px solid rgba(70, 120, 255, 0.14);
+  background: linear-gradient(180deg, rgba(10, 18, 35, 0.97), rgba(6, 11, 22, 0.97));
+  box-shadow: var(--shadow-card);
+}
+.market-decision-card.loading { border-color: rgba(70, 120, 255, 0.08); }
+.market-decision-card.mdc-buy-favored { border-color: rgba(34, 197, 94, 0.32); }
+.market-decision-card.mdc-sell-favored { border-color: rgba(248, 113, 113, 0.32); }
+.market-decision-card.mdc-no-trade { border-color: rgba(251, 191, 36, 0.28); }
+.market-decision-card.mdc-blocked { border-color: rgba(100, 116, 139, 0.32); }
+
+.mdc-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 14px 16px;
+  gap: 5px;
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
+}
+.mdc-status-dot { font-size: 16px; line-height: 1; }
+.mdc-status-label {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+  color: #94a3b8;
+}
+.market-decision-card.mdc-buy-favored .mdc-status-label { color: #4ade80; }
+.market-decision-card.mdc-sell-favored .mdc-status-label { color: #f87171; }
+.market-decision-card.mdc-no-trade .exec-strip-hero,
+.market-decision-card.mdc-no-trade .mdc-status-label { color: #f87171; }
+.market-decision-card.mdc-blocked .mdc-status-label { color: #94a3b8; }
+
+.mdc-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
+}
+.mdc-field {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: baseline;
+}
+.mdc-field-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  line-height: 1.2;
+}
+.mdc-field-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+  line-height: 1.3;
+}
+.mdc-field-action {
+  margin-top: 2px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+.mdc-field-action .mdc-field-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #bfdbfe;
+  line-height: 1.45;
+}
+
+.mdc-risk {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 12px 14px;
+  min-width: 0;
+}
+.mdc-risk-text {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .market-decision-card { grid-template-columns: 1fr; min-height: auto; }
+  .mdc-status, .mdc-center {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+}
+
+/* Legacy alias — keep id permissionBanner for JS */
+
+/* System Attention Banner */
+.attention-banner {
+  border-radius:10px; padding:10px 18px; margin-bottom:14px;
+  font-size:13px; font-weight:600; display:flex; align-items:center; gap:10px;
+}
+.attention-banner.warn  { background:#1c1000; border:1px solid #b45309; color:#fbbf24; }
+.attention-banner.info  { background:#0a1628; border:1px solid #1d4ed8; color:#93c5fd; }
+.attention-banner.ok    { background:#052e16; border:1px solid #16a34a; color:#86efac; }
+.attention-banner.muted { background:var(--surface2); border:1px solid var(--border); color:var(--muted); }
+
+/* Mission Row — Session + Health */
+.mission-row { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.session-widget {
+  background:linear-gradient(180deg,rgba(10,18,35,0.95),rgba(7,12,24,0.95));
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:12px 18px;
+  display:flex; align-items:center; gap:12px; flex:1; min-width:220px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.35);
+}
+.session-label { font-size:9px; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:.12em; margin-bottom:4px; opacity:.7; }
+.session-slots { display:flex; gap:6px; }
+.session-slot { padding:3px 10px; border-radius:4px; font-size:11px; font-weight:700; }
+.session-active   { background:#1a2f1a; color:var(--green); border:1px solid #16a34a; }
+.session-inactive { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+.health-widget {
+  background:linear-gradient(180deg,rgba(10,18,35,0.95),rgba(7,12,24,0.95));
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:12px 18px;
+  display:flex; align-items:center; gap:16px; flex:1; min-width:220px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.35);
+}
+.health-item { display:flex; align-items:center; gap:6px; font-size:11px; }
+.health-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.health-dot.ok  { background:var(--green); box-shadow:0 0 6px var(--green); }
+.health-dot.warn{ background:var(--orange); }
+.health-dot.err { background:var(--red); }
+
+/* Level 2 — State Grid */
+.state-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--gap); margin-bottom:var(--gap); }
+.state-card {
+  background:linear-gradient(180deg,rgba(10,18,35,0.95),rgba(7,12,24,0.95));
+  border:1px solid var(--border);
+  border-radius:var(--radius-card);
+  padding:20px 22px;
+  box-shadow:var(--shadow-card);
+  transition:transform .25s ease;
+}
+.state-card:hover { transform:translateY(-2px); }
+.state-card-title {
+  font-size:9px; font-weight:800; text-transform:uppercase;
+  letter-spacing:.14em; color:var(--muted); opacity:.75;
+  margin-bottom:16px; display:flex; align-items:center; gap:6px;
+}
+.state-value-lg { font-size:20px; font-weight:800; margin-bottom:4px; letter-spacing:.5px; }
+.state-sub-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+.state-chip { padding:3px 10px; border-radius:20px; font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+.chip-green  { background:rgba(34,197,94,0.10); color:#4ade80; border:1px solid rgba(34,197,94,0.28); }
+.chip-red    { background:rgba(239,68,68,0.10); color:#f87171; border:1px solid rgba(239,68,68,0.28); }
+.chip-orange { background:rgba(245,158,11,0.10); color:#fbbf24; border:1px solid rgba(245,158,11,0.28); }
+.chip-blue   { background:rgba(59,130,246,0.12); color:#93c5fd; border:1px solid rgba(59,130,246,0.28); }
+.chip-muted  { background:rgba(100,116,139,0.08); color:#94a3b8; border:1px solid rgba(100,116,139,0.18); }
+
+/* Score State Classes */
+.score-stable    { color:var(--green); }
+.score-moderate  { color:#34d399; }
+.score-weak      { color:var(--orange); }
+.score-dangerous { color:var(--red); }
+
+.score-badge { display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; }
+.score-badge.stable    { background:#052e16; color:var(--green);  border:1px solid #16a34a; }
+.score-badge.moderate  { background:#022c22; color:#34d399;        border:1px solid #059669; }
+.score-badge.weak      { background:#1c1000; color:var(--orange);  border:1px solid #b45309; }
+.score-badge.dangerous { background:#1a0000; color:var(--red);     border:1px solid #dc2626; }
+
+/* Protected State (replaces ABSTAIN red styling) */
+.protected-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 18px; border-radius:8px; font-weight:800; font-size:15px;
+  background:var(--surface2); color:#64748b;
+  border:1px solid #2d3f55; letter-spacing:1px;
+}
+.allowed-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 18px; border-radius:8px; font-weight:800; font-size:15px;
+  background:#052e16; color:var(--green);
+  border:1px solid #16a34a; letter-spacing:1px;
+}
+
+/* Decision Timeline */
+.timeline-card {
+  background:linear-gradient(180deg,rgba(10,18,35,0.95),rgba(7,12,24,0.95));
+  border:1px solid var(--border);
+  border-radius:var(--radius-card);
+  padding:18px 22px;
+  margin-bottom:var(--gap);
+  box-shadow:var(--shadow-card);
+}
+.timeline-title { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-bottom:14px; opacity:.8; }
+.timeline-list { list-style:none; }
+.timeline-item { display:flex; gap:14px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px; align-items:flex-start; }
+.timeline-item:last-child { border-bottom:none; }
+.timeline-time { color:var(--muted); flex-shrink:0; width:46px; font-size:10px; font-family:'JetBrains Mono','Fira Code',monospace; padding-top:2px; }
+.timeline-dot  { width:7px; height:7px; border-radius:50%; flex-shrink:0; margin-top:4px; border:1px solid currentColor; }
+.timeline-text { color:#cbd5e1; line-height:1.5; flex:1; }
+
+/* Decision Explanation Card */
+.explain-card {
+  background:linear-gradient(180deg,rgba(10,18,35,0.92),rgba(7,12,24,0.92));
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:12px 18px; margin-bottom:14px;
+  font-size:13px; display:flex; align-items:center; gap:10px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);
+}
+.explain-label { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-right:4px; opacity:.7; }
+
+/* Metric Renamed Labels with tooltips */
+[data-tooltip] { position:relative; cursor:help; border-bottom:1px dashed var(--border); }
+[data-tooltip]:hover::after {
+  content:attr(data-tooltip);
+  position:absolute; bottom:120%; left:50%; transform:translateX(-50%);
+  background:#1e2d45; color:var(--text); font-size:10px; padding:4px 8px;
+  border-radius:4px; white-space:nowrap; z-index:100; border:1px solid var(--border);
+}
+
+/* Calculator — blocked overlay */
+.calc-blocked-overlay {
+  position:absolute; inset:0; background:rgba(10,14,26,.75);
+  border-radius:12px; display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:8px; z-index:10;
+  backdrop-filter:blur(3px);
+}
+.calc-blocked-msg { font-size:13px; font-weight:700; color:#64748b; text-align:center; }
+.card-relative { position:relative; }
+
+/* Expandable details */
+.details-toggle { font-size:11px; color:var(--blue); cursor:pointer; display:flex; align-items:center; gap:4px; margin-top:10px; border:none; background:none; padding:0; font-family:inherit; }
+.details-toggle:hover { color:#93c5fd; }
+
+@media (max-width:768px) {
+  .state-grid, .pipeline-brains { grid-template-columns:1fr; }
+  .permission-banner { flex-direction:column; align-items:flex-start; }
+  .perm-right { text-align:left; }
+}
+
+/* ── AI Pipeline Panel ────────────────────────────────── */
+.pipeline-panel {
+  background:linear-gradient(180deg,rgba(10,18,35,0.97),rgba(6,11,22,0.97));
+  border:1px solid var(--border);
+  border-radius:var(--radius-card);
+  padding:20px 24px;
+  margin:var(--gap) 0;
+  box-shadow:var(--shadow-card);
+}
+.pipeline-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+.pipeline-title { font-weight:800; font-size:15px; display:flex; align-items:center; gap:8px; }
+.btn-run-pipeline { background:linear-gradient(135deg,#3b82f6,#8b5cf6); color:white; border:none; padding:9px 22px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:8px; transition:opacity .15s; }
+.btn-run-pipeline:hover { opacity:.85; }
+.btn-run-pipeline:disabled { opacity:.4; cursor:not-allowed; }
+.pipeline-brains { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:14px; }
+.brain-card {
+  background:rgba(10,18,35,0.85);
+  border:1px solid rgba(59,130,246,0.12);
+  border-radius:10px; padding:14px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);
+  transition:border-color .2s;
+}
+.brain-card:hover { border-color:rgba(59,130,246,0.22); }
+.brain-card-title { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-bottom:10px; opacity:.75; }
+.brain-row { display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px; }
+.brain-row .label { color:var(--muted); }
+.brain-row .val { font-weight:700; }
+.pipeline-decision { display:flex; align-items:center; gap:16px; padding:14px 18px; border-radius:10px; border:1px solid var(--border); background:var(--surface2); }
+.decision-badge { font-size:22px; font-weight:900; letter-spacing:2px; }
+.decision-badge.approved { color:var(--green); }
+.decision-badge.abstain  { color:var(--muted); }
+.decision-meta { flex:1; font-size:12px; color:var(--muted); line-height:1.6; }
+.pipeline-idle { text-align:center; padding:20px; color:var(--muted); font-size:13px; }
+.text-green { color:var(--green); }
+.text-red   { color:var(--red); }
+.text-orange{ color:var(--orange); }
+.text-muted { color:var(--muted); }
+.pipeline-spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .7s linear infinite; }
+@media (max-width:768px) { .pipeline-brains { grid-template-columns:1fr; } .pipeline-panel { margin:12px 0; } }
+
+/* ══════════════════════════════════════════════════════
+   CONVICTION SYSTEM — replaces binary green
+   ══════════════════════════════════════════════════════ */
+
+/* Permission banner conviction variants — progressively dimmer */
+.permission-banner.allowed-strong {
+  background:linear-gradient(135deg,#052e16,#0f3d20);
+  border:2px solid #16a34a;
+}
+.permission-banner.allowed-moderate {
+  background:linear-gradient(135deg,#071a10,#0a2416);
+  border:2px solid #15803d;
+}
+.permission-banner.allowed-weak {
+  background:linear-gradient(135deg,#0a1210,#0c1a10);
+  border:2px solid #1f4028;   /* very dim green border */
+}
+/* Permission banner — shrink perm-state font for conviction sub-label */
+.perm-state-row { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+.perm-state     { font-size:20px; font-weight:900; letter-spacing:1.5px; line-height:1; }
+.perm-conviction-chip {
+  font-size:10px; font-weight:800; letter-spacing:1px;
+  padding:2px 8px; border-radius:4px; text-transform:uppercase;
+}
+.conviction-strong   { background:rgba(22,163,74,.2);  color:#4ade80; border:1px solid #16a34a; }
+.conviction-moderate { background:rgba(5,150,105,.15); color:#34d399; border:1px solid #059669; }
+.conviction-weak     { background:rgba(180,83,9,.2);   color:#fbbf24; border:1px solid #b45309; }
+
+/* ── Conviction display (replaces confidence bar) ── */
+.conviction-display {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 14px; border-radius:8px; margin-bottom:12px;
+}
+.conviction-display.strong   { background:#052e16; border:1px solid #16a34a; }
+.conviction-display.moderate { background:#022c22; border:1px solid #059669; }
+.conviction-display.low      { background:#1c1000; border:1px solid #78350f; }
+.conviction-display.blocked  { background:var(--surface2); border:1px solid var(--border); }
+.conv-label { font-size:13px; font-weight:800; letter-spacing:.5px; flex:1; }
+.conv-score { font-size:11px; color:var(--muted); }
+
+/* ── Calculator — conviction-aware states ── */
+.calc-caution-bar {
+  background:#1c1000; border:1px solid #78350f; border-radius:6px;
+  padding:6px 10px; font-size:11px; color:#fbbf24; margin-bottom:8px;
+  display:flex; gap:6px; align-items:center;
+}
+.calc-weak-overlay {
+  position:absolute; inset:0; border-radius:12px; z-index:5;
+  background:rgba(10,14,26,.5); backdrop-filter:blur(1px);
+  display:flex; align-items:flex-end; justify-content:center; padding-bottom:20px;
+}
+.calc-weak-msg {
+  font-size:11px; color:#fbbf24; text-align:center;
+  background:#1c1000; border:1px solid #78350f; border-radius:6px; padding:6px 14px;
+}
+
+/* ══════════════════════════════════════════════════════
+   COLLAPSIBLE PIPELINE
+   ══════════════════════════════════════════════════════ */
+.pipeline-summary-bar {
+  display:flex; align-items:center; gap:10px; cursor:pointer;
+  padding:2px 0; user-select:none;
+}
+.pipeline-summary-bar:hover .pipeline-toggle { color:#93c5fd; }
+.pipeline-toggle {
+  font-size:11px; color:var(--blue); background:none; border:none;
+  cursor:pointer; margin-left:auto; display:flex; align-items:center; gap:4px;
+  font-family:inherit; font-weight:700; padding:4px 10px;
+  border-radius:6px; border:1px solid var(--border);
+}
+.pipeline-body { overflow:hidden; transition:max-height .25s ease; }
+.pipeline-body.collapsed { max-height:0 !important; }
+.pipeline-body.expanded  { max-height:1200px; }
+
+/* ══════════════════════════════════════════════════════
+   COMPACT AUDIT FORMAT
+   ══════════════════════════════════════════════════════ */
+.audit-compact { padding:0; }
+.audit-compact-block { margin-bottom:12px; }
+.audit-compact-head {
+  font-size:9px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--muted); border-bottom:1px solid var(--border); padding-bottom:4px; margin-bottom:6px;
+}
+.audit-compact-items { list-style:none; }
+.audit-compact-items li {
+  font-size:12px; color:var(--muted); padding:2px 0;
+  display:flex; gap:8px; line-height:1.4;
+}
+.audit-compact-items li::before { content:'·'; color:var(--blue); flex-shrink:0; }
+.audit-action-items li::before  { content:'→'; color:#34d399; flex-shrink:0; }
+
+/* Audit Result — directional environment analysis */
+.panel-audit {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: min(72vh, 520px);
+  overflow-y: auto;
+  height: fit-content;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px 12px;
+  scrollbar-width: thin;
+}
+.panel-audit .panel-title { margin-bottom: 6px; }
+.panel-audit .panel-title-sub { margin: -2px 0 8px; }
+.panel-audit .audit-context-note { margin: 0 0 8px; }
+.audit-result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+.audit-dir-block { display: flex; flex-direction: column; gap: 6px; }
+.audit-dir-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.audit-dir-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+}
+.audit-dir-pct {
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.audit-dir-block.buy .audit-dir-pct { color: #4ade80; }
+.audit-dir-block.sell .audit-dir-pct { color: #f87171; }
+.audit-dir-bar-track {
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+.audit-dir-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.35s ease;
+}
+.audit-dir-block.buy .audit-dir-bar-fill {
+  background: linear-gradient(90deg, #15803d, #4ade80);
+}
+.audit-dir-block.sell .audit-dir-bar-fill {
+  background: linear-gradient(90deg, #b91c1c, #f87171);
+}
+.audit-bias-footer {
+  padding-top: 8px;
+  margin-bottom: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.audit-bias-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+}
+.audit-bias-value {
+  font-size: 14px;
+  font-weight: 800;
+  color: #e2e8f0;
+  letter-spacing: 0.02em;
+}
+.audit-bias-value.bias-buy { color: #4ade80; }
+.audit-bias-value.bias-sell { color: #fb923c; }
+.audit-bias-value.bias-neutral { color: #94a3b8; }
+
+/* Right column — single context + governance block */
+.ai-col {
+  min-height:0;
+  height:auto;
+  max-height:100%;
+  align-self:start;
+  overflow:visible;
+}
+/* ══════════════════════════════════════════════════════
+   REGIME ACTION HINT
+   ══════════════════════════════════════════════════════ */
+.regime-action-hint {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 10px; border-radius:4px; font-size:11px; font-weight:700;
+  background:var(--surface2); color:#93c5fd;
+  border:1px solid var(--blue-dim); margin-top:6px;
+}
+
+/* ══════════════════════════════════════════════════════
+   BANNER 3-ROW LAYOUT: STATE → REASON → ACTION
+   ══════════════════════════════════════════════════════ */
+.perm-detail-rows { display:flex; flex-direction:column; gap:5px; flex:1; min-width:0; }
+.perm-detail-row  { display:flex; align-items:flex-start; gap:8px; font-size:12px; line-height:1.5; }
+.perm-detail-tag  {
+  font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase;
+  color:var(--muted); min-width:52px; padding-top:2px; flex-shrink:0; opacity:.7;
+}
+.perm-detail-val         { color:var(--text); flex:1; }
+.perm-detail-val.reason  { color:#94a3b8; }
+.perm-detail-val.action  { color:#38bdf8; font-weight:600; }
+
+/* Blockers section in audit card */
+.blockers-section { margin-bottom:10px; }
+.blockers-head    {
+  font-size:9px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--muted); margin-bottom:5px; padding-bottom:3px; border-bottom:1px solid var(--border);
+}
+.blockers-list    { list-style:none; }
+.blockers-list li { font-size:12px; color:#fca5a5; padding:2px 0; display:flex; gap:6px; line-height:1.4; }
+.blockers-list li::before  { content:'✗'; color:#ef4444; flex-shrink:0; }
+.system-action-list        { list-style:none; }
+.system-action-list li     { font-size:12px; color:#94a3b8; padding:2px 0; display:flex; gap:6px; }
+.system-action-list li::before { content:'→'; color:#38bdf8; flex-shrink:0; }
+
+/* AI Consensus bar (pipeline header, trader mode) */
+.ai-consensus-bar {
+  font-size:11px; padding:5px 12px; border-radius:6px;
+  background:var(--surface2); border:1px solid var(--border);
+  display:flex; align-items:center; gap:8px; margin-left:8px;
+}
+.ai-consensus-label { font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+.ai-consensus-val   { font-weight:700; }
+.ai-consensus-val.approved { color:#4ade80; }
+.ai-consensus-val.abstain  { color:var(--muted); }
+.ai-consensus-val.warn     { color:#fbbf24; }
+
+/* ══════════════════════════════════════════════════════
+   VISUAL REFINEMENTS — spacing + grouping
+   ══════════════════════════════════════════════════════ */
+/* Bigger gap between sections */
+.state-grid       { margin-bottom:20px; }
+.timeline-card    { margin-bottom:20px; }
+.chart-card       { margin-bottom:20px; }
+.explain-card     { margin-bottom:20px; }
+.mission-row      { margin-bottom:20px; }
+.permission-banner{ margin-bottom:16px; }
+
+/* Section divider */
+.section-label {
+  font-size:9px; font-weight:800; letter-spacing:2px; text-transform:uppercase;
+  color:var(--muted); margin-bottom:8px; opacity:.6;
+}
+
+/* Expandable detail section */
+.detail-section { margin-top:12px; }
+.detail-toggle-btn {
+  font-size:11px; color:var(--muted); background:none; border:none;
+  cursor:pointer; display:flex; align-items:center; gap:4px; padding:4px 0;
+  font-family:inherit;
+}
+.detail-toggle-btn:hover { color:var(--text); }
+.detail-body { overflow:hidden; transition:max-height .2s ease; max-height:0; }
+.detail-body.open { max-height:400px; }
+
+/* ══════════════════════════════════════════════════════
+   APP LAYOUT — SIDEBAR + MAIN CONTENT
+   ══════════════════════════════════════════════════════ */
+#pageDashboard { display:none; min-height:100vh; }
+#pageDashboard.active { display:block; }
+body.shell-dashboard { overflow:hidden; }
+body.shell-dashboard .navbar { display:none; }
+body.shell-dashboard .loading-overlay { z-index:200; }
+
+.app-shell {
+  display:flex;
+  min-height:100vh;
+  background:#050b16;
+  overflow:hidden;
+}
+.app-layout { display:contents; } /* legacy alias */
+
+/* ── Left Sidebar ─────────────────────────────────────── */
+.sidebar {
+  width:220px; flex-shrink:0;
+  position:fixed; left:0; top:0;
+  height:100vh;
+  background:linear-gradient(180deg,#08101d 0%,#050b16 100%);
+  border-right:1px solid rgba(255,255,255,0.06);
+  display:flex; flex-direction:column;
+  padding:14px 12px;
+  gap:12px;
+  overflow:hidden;
+  transition:width .22s ease;
+  z-index:30;
+}
+.sidebar-logo {
+  display:flex; align-items:center; gap:10px;
+  cursor:pointer; flex-shrink:0;
+  padding:0 4px 4px;
+}
+.sidebar-logo .logo-icon {
+  width:36px; height:36px; border-radius:10px;
+  font-size:15px;
+}
+.sidebar-logo .logo-text { font-size:14px; letter-spacing:1.5px; }
+.sidebar-logo .logo-sub { font-size:8px; letter-spacing:1px; opacity:0.7; }
+.sidebar-top { display:none; }
+.sidebar.collapsed { width:48px; }
+
+.sidebar-top {
+  display:flex; align-items:center; justify-content:flex-end;
+  padding:0 4px 4px;
+  flex-shrink:0;
+}
+.sidebar-watchlist-label {
+  font-size:8px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:#64748b; white-space:nowrap; overflow:hidden; opacity:0.55;
+}
+.sidebar-collapse-btn {
+  background:none; border:none; color:var(--muted);
+  cursor:pointer; font-size:11px; padding:3px 5px;
+  border-radius:5px; flex-shrink:0; line-height:1;
+  transition:color .2s, background .2s;
+}
+.sidebar-collapse-btn:hover { color:var(--text); background:rgba(255,255,255,0.06); }
+
+.sidebar-pairs {
+  flex:1; overflow-y:auto; padding:0 2px;
+  min-height:0;
+  scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.08) transparent;
+}
+.sidebar-pairs::-webkit-scrollbar { width:2px; }
+.sidebar-pairs::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.08); border-radius:2px; }
+
+.sidebar-section-tag {
+  font-size:7px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:#64748b; padding:8px 8px 3px;
+  opacity:.35; white-space:nowrap; overflow:hidden;
+}
+
+.pair-item {
+  display:grid;
+  grid-template-columns:7px 1fr auto;
+  align-items:center;
+  gap:8px;
+  width:100%;
+  padding:5px 8px 5px 10px;
+  margin:0 0 1px;
+  background:none;
+  border:none;
+  border-left:2px solid transparent;
+  border-radius:4px;
+  cursor:pointer;
+  text-align:left;
+  transition:background .12s ease, border-color .12s ease;
+}
+.pair-item:hover { background:rgba(255,255,255,.03); }
+.pair-item.active {
+  background:rgba(37,99,235,0.08);
+  border-left-color:#3b82f6;
+  box-shadow:none;
+}
+
+.pair-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:#334155; flex-shrink:0;
+  transition:background .2s ease;
+}
+.pair-dot.allowed { background:#22c55e; box-shadow:none; }
+.pair-dot.standby { background:#475569; }
+.pair-dot.loading {
+  background:#3b82f6;
+  animation:pdot-pulse 1.1s ease-in-out infinite;
+}
+@keyframes pdot-pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+.pair-name {
+  font-size:12px; font-weight:600; color:#94a3b8;
+  white-space:nowrap; letter-spacing:.02em; line-height:1.2;
+  overflow:hidden; text-overflow:ellipsis;
+}
+.pair-item.active .pair-name { color:#cbd5e1; font-weight:700; }
+.pair-sub, .pair-state {
+  font-size:9px; font-weight:700; color:#64748b;
+  white-space:nowrap; text-transform:uppercase;
+  letter-spacing:.05em; line-height:1;
+  text-align:right;
+}
+.pair-item.active .pair-sub,
+.pair-item.active .pair-state { color:#64748b; }
+
+.sidebar-watchlist {
+  flex:1 1 0; min-height:72px;
+  display:flex; flex-direction:column;
+  overflow:hidden;
+}
+
+/* Collapsed sidebar: dot only */
+.sidebar.collapsed .sidebar-watchlist-label,
+.sidebar.collapsed .sidebar-section-tag,
+.sidebar.collapsed .pair-name,
+.sidebar.collapsed .pair-sub,
+.sidebar.collapsed .pair-state,
+.sidebar.collapsed .sidebar-top { justify-content:center; padding:14px 0; }
+.sidebar.collapsed .pair-item {
+  justify-content:center; padding:11px 0; border-left:2px solid transparent;
+}
+.sidebar.collapsed .pair-item.active { border-left-color:transparent; background:rgba(37,99,235,0.16); }
+
+/* ── Main content area ────────────────────────────────── */
+.main-content {
+  flex:1; min-width:0;
+  margin-left:220px;
+  padding:10px 14px 10px;
+  height:100vh;
+  overflow:hidden;
+  display:grid;
+  grid-template-rows:52px minmax(100px, 112px) minmax(0, 1fr) 56px 28px;
+  gap:8px;
+  position:relative;
+}
+.main-content > .cockpit-main { min-height:0; }
+.main-content > .bottom-metrics-bar { z-index:2; }
+
+/* Mobile sidebar toggle (hidden on desktop) */
+.mobile-sidebar-btn {
+  display:none; background:none; border:1px solid var(--border);
+  color:var(--muted); padding:6px 10px; border-radius:6px;
+  font-size:13px; cursor:pointer; margin-right:4px;
+}
+.mobile-sidebar-btn:hover { color:var(--text); border-color:var(--blue); }
+
+/* Mobile sidebar overlay */
+.sidebar-overlay {
+  display:none; position:fixed; inset:0; top:61px;
+  background:rgba(0,0,0,.55); z-index:199;
+}
+.sidebar-overlay.show { display:block; }
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width:1279px) {
+  .sidebar {
+    transform:translateX(-100%);
+    z-index:200;
+    box-shadow:4px 0 24px rgba(0,0,0,.5);
+  }
+  .sidebar.mobile-open { transform:translateX(0); }
+  .main-content { margin-left:0; grid-template-rows:52px minmax(100px, 112px) minmax(0, 1fr) 56px 28px; }
+}
+@media (max-width:900px) {
+  .mobile-sidebar-btn { display:flex !important; align-items:center; gap:6px; }
+  .dash-title { font-size:22px; }
+  .dash-right { gap:8px; }
+  .exec-strip {
+    grid-template-columns:1fr;
+    max-height:none;
+    gap:10px;
+    padding:14px 16px;
+  }
+  .exec-strip-risk { text-align:left; }
+  .ops-surface {
+    grid-template-columns:1fr;
+    overflow-y:auto;
+  }
+  .ops-left-split {
+    grid-template-columns:1fr;
+    border-right:none;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+  }
+  .ops-governance { border-right:none; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .ops-calculator { border-bottom:1px solid rgba(255,255,255,0.05); }
+  .panel-calc-ops .calc-grid { grid-template-columns:1fr; }
+  .telemetry-strip {
+    height:auto !important;
+    grid-template-columns:1fr !important;
+  }
+}
+
+/* ══ MASTER LAYOUT — Reference structure ══════════════ */
+.dash-header {
+  height:52px; flex-shrink:0;
+  display:flex; justify-content:space-between; align-items:center;
+  margin:0; padding:0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.dash-header-left { display:flex; align-items:center; gap:10px; min-width:0; }
+.dash-mobile-menu { display:none; flex-shrink:0; }
+body.shell-dashboard .dash-mobile-menu { display:flex; }
+.dash-title {
+  font-size:22px; font-weight:700; letter-spacing:-.01em;
+  color:#e2e8f0; background:none; -webkit-text-fill-color:#e2e8f0;
+}
+#dashSubtitle { font-size:12px !important; color:#94a3b8 !important; margin-top:3px !important; }
+.dash-right { display:flex; align-items:center; gap:14px; flex-wrap:nowrap; }
+.dash-status-group {
+  display:flex; align-items:center; gap:10px;
+  padding:4px 10px; border-radius:999px;
+  background:rgba(10,18,35,0.45);
+  border:1px solid rgba(255,255,255,0.06);
+}
+.dash-status-group .health-item span { font-size:11px; }
+.dash-clock {
+  font-size:12px; font-weight:600; color:#cbd5e1;
+  font-family:'JetBrains Mono',monospace;
+  min-width:52px; text-align:right;
+}
+
+/* Market Decision Card — cockpit hero (notebook-compressed) */
+.market-decision-card {
+  flex-shrink: 0;
+  min-height: 100px;
+  border-radius: 18px;
+  padding: 0;
+  margin: 0 !important;
+  display: grid !important;
+  grid-template-columns: 176px minmax(0, 1fr) 21%;
+  gap: 0;
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  background: #0b1526;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.12), 0 10px 40px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+.permission-banner.market-decision-card,
+.market-decision-card { display: grid !important; }
+
+.cockpit-main.ops-surface { min-height:0; overflow:hidden; }
+.panel-audit.ops-environment {
+  flex:0 1 auto; min-height:0; max-height:none; overflow:visible;
+  box-shadow:none; border:none; background:transparent;
+  padding:10px 14px 10px;
+}
+.panel-card { padding:16px; border-radius:18px; }
+.panel-ai { height:180px; }
+.panel-risk { height:150px; }
+.panel-validation { height:140px; }
+.panel-exec { height:140px; }
+.panel-calc { position:relative; }
+.panel-calc .calc-grid { margin-bottom:10px; }
+.panel-calc .calc-results { font-size:12px; }
+.panel-calc .calc-result-val { font-size:14px; }
+.exec-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:8px;
+}
+.exec-metric {
+  background:rgba(5,10,20,0.45);
+  border:1px solid rgba(59,130,246,0.12);
+  border-radius:12px;
+  padding:10px 12px;
+}
+.exec-k { font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#94a3b8; }
+.exec-v { font-size:16px; font-weight:800; color:#f8fafc; margin-top:4px; }
+.mc-structure .audit-score-item {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  background:transparent;
+  border-radius:0;
+}
+.risk-snapshot-list {
+  list-style:none; flex:1; display:flex; flex-direction:column;
+  justify-content:center; gap:4px;
+}
+.risk-snapshot-list li {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  font-size:13px;
+}
+.risk-snapshot-list .rs-key { color:#94a3b8; }
+.risk-snapshot-list .rs-val { font-weight:700; color:#22c55e; }
+.mc-risk .conviction-display,
+.mc-risk #permissionBadge { display:none !important; }
+.mc-risk #govReasonShort { display:none; }
+
+/* Backward compat */
+.dashboard-mid-row { display:none; }
+.triple-cards { display:none; }
+.chart-card {
+  border-radius:20px;
+  padding:22px 24px;
+  margin:0 !important;
+  background:linear-gradient(180deg, #0b1526 0%, #070f1c 100%);
+  border:1px solid rgba(59,130,246,0.18);
+  display:flex; flex-direction:column;
+  overflow:hidden;
+  min-height:min(100%, 420px);
+}
+.right-stack {
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  min-width:0;
+}
+.panel-card {
+  border-radius:20px;
+  padding:20px;
+  background:#0b1526;
+  border:1px solid rgba(59,130,246,0.18);
+  box-shadow:0 20px 60px rgba(0,0,0,0.45);
+  overflow:hidden;
+}
+.panel-card.panel-audit {
+  padding:14px 16px 12px;
+  height:fit-content;
+  box-shadow:0 12px 36px rgba(0,0,0,0.35);
+}
+.panel-ai { height:150px; display:flex; flex-direction:column; }
+.panel-validation { height:120px; }
+.panel-timeline { height:150px; padding:16px 20px; }
+.panel-title {
+  font-size:11px; font-weight:800; text-transform:uppercase;
+  letter-spacing:.08em; color:#94a3b8; margin-bottom:10px;
+}
+.ai-consensus-hero {
+  display:flex; align-items:baseline; gap:12px; margin-bottom:8px;
+}
+.ai-consensus-hero .ai-consensus-val {
+  font-size:22px; font-weight:800; letter-spacing:.04em;
+}
+.ai-consensus-hero .ai-consensus-val.approved { color:#22c55e; }
+.ai-consensus-hero .ai-consensus-val.abstain { color:#94a3b8; }
+.ai-consensus-pct { font-size:13px; color:#94a3b8; font-weight:600; }
+.brains-compact {
+  display:flex; flex-direction:column; gap:4px;
+  font-size:11px; color:#94a3b8;
+}
+.brain-pill {
+  display:flex; justify-content:space-between; align-items:center;
+}
+.brain-pill .bp-val { font-weight:700; color:#f8fafc; }
+.panel-ai .pipeline-header { margin-top:auto; }
+.panel-ai .pipeline-panel {
+  margin:0; padding:0; border:none; box-shadow:none; background:transparent;
+}
+.panel-ai .pipeline-summary-bar { padding:0; }
+.panel-ai .pipeline-body { display:none !important; }
+.panel-ai .btn-run-pipeline { padding:6px 14px; font-size:11px; }
+
+.validation-list {
+  list-style:none; margin:0; padding:0;
+  font-size:12px; color:#94a3b8; line-height:1.5;
+  overflow:auto; max-height:72px;
+}
+.validation-list li {
+  padding:4px 0 4px 14px; position:relative;
+}
+.validation-list li::before {
+  content:''; position:absolute; left:0; top:10px;
+  width:6px; height:6px; border-radius:50%;
+  border:1px solid #64748b;
+}
+.panel-timeline .timeline-title { margin-bottom:8px; }
+.panel-timeline .timeline-list { max-height:90px; overflow:auto; }
+.panel-timeline .timeline-item { padding:4px 0; }
+
+/* Bottom strip — system health overview (4 status blocks) */
+.bottom-metrics-bar {
+  flex-shrink: 0;
+  height: 72px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  align-items: stretch;
+  border-radius: 18px;
+  padding: 0 8px 0 12px;
+  background: #0b1526;
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.12), 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+.bm-cell {
+  padding: 14px 16px;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+.bm-cell:last-of-type { border-right: none; }
+.bm-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  line-height: 1;
+}
+.bm-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bm-chip-stable, .bm-chip-strong, .bm-chip-active, .bm-chip-low {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.22);
+}
+.bm-chip-degraded, .bm-chip-moderate, .bm-chip-limited, .bm-chip-elevated {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+.bm-chip-neutral {
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+.bm-chip-weak {
+  color: #fb923c;
+  background: rgba(251, 146, 60, 0.08);
+  border: 1px solid rgba(251, 146, 60, 0.2);
+}
+.bm-chip-high, .bm-chip-critical, .bm-chip-locked {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.22);
+}
+.bm-chip-standby {
+  color: #94a3b8;
+  background: rgba(100, 116, 139, 0.12);
+  border: 1px solid rgba(100, 116, 139, 0.22);
+}
+
+/* Sidebar — compact watchlist (no card blocks) */
+.sidebar-pairs { flex:1; min-height:0; padding:0; }
+.sidebar-footer {
+  margin-top:auto; padding-top:10px;
+  border-top:1px solid rgba(255,255,255,0.06);
+  font-size:10px; opacity:0.75;
+}
+
+/* Hidden / auxiliary */
+.mission-row, .state-grid, .explain-card { display:none !important; }
+.error-banner.hidden, .upgrade-banner, #attentionBanner { display:none !important; }
+.error-banner:not(.hidden) {
+  display:block !important;
+  flex-shrink:0;
+  padding:10px 14px;
+  border-radius:10px;
+  background:rgba(127,29,29,0.35);
+  border:1px solid rgba(248,113,113,0.35);
+  color:#fecaca;
+  font-size:12px;
+  font-weight:600;
+}
+body.shell-dashboard .dash-status-group { display:none !important; }
+.dashboard-extra {
+  display:none;
+  flex-shrink:0;
+}
+#detailWrap .main-grid { grid-template-columns:1fr 1fr; gap:20px; }
+.attention-banner { flex-shrink:0; margin:0 !important; }
+.error-banner, .upgrade-banner { flex-shrink:0; margin:0 !important; }
+
+/* Landing polish */
+.hero h1 { font-size:40px; }
+.feature-card, .price-card {
+  background:#0b1526;
+  border:1px solid rgba(59,130,246,0.18);
+  border-radius:20px;
+}
+</style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div id="loadingText" style="color:var(--muted);font-size:13px;">กำลังโหลด...</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="logo" onclick="goHome()">
+    <div class="logo-icon">A</div>
+    <div>
+      <div class="logo-text">AMRO</div>
+      <div class="logo-sub">AI TRADING INTELLIGENCE</div>
+    </div>
+  </div>
+  <div class="nav-right">
+    <button class="mobile-sidebar-btn" id="mobileSidebarBtn" onclick="toggleSidebarMobile()" style="display:none">☰ Pairs</button>
+    <span id="tierBadge" class="nav-tier"></span>
+    <button class="btn btn-outline" id="btnUpgrade" onclick="startCheckout()" style="display:none">⬆ Upgrade</button>
+    <button class="btn-google" id="btnLogin" onclick="loginWithGoogle()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      Sign in with Google
+    </button>
+    <button class="btn btn-outline hidden" id="btnLogout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- Landing Page -->
+<div id="pageLanding" class="page active">
+  <div class="hero">
+    <div class="hero-badge">🧠 AI Trading Intelligence</div>
+    <h1>ระบบ <span>คัดกรองความจริง</span><br>ของตลาดการเงิน</h1>
+    <p>AMRO ไม่ใช่แค่ indicator แต่คือระบบที่บอกได้ว่า <strong>signal นี้เชื่อได้แค่ไหน</strong><br>และตลาดอยู่ใน <strong>state ไหน</strong> ก่อนที่คุณจะกด Buy หรือ Sell</p>
+    <div class="hero-cta">
+      <button class="btn btn-primary" style="font-size:15px;padding:12px 28px;" onclick="loginWithGoogle()">เริ่มใช้งานฟรี — Sign in with Google</button>
+      <button class="btn btn-outline" style="font-size:15px;padding:12px 28px;" onclick="scrollToPricing()">ดูแผนราคา</button>
+    </div>
+  </div>
+  <div class="features">
+    <div class="feature-card"><div class="feature-icon">📡</div><div class="feature-title">Signal Engine</div><div class="feature-desc">คำนวณ EMA, RSI, MACD, ADX, Bollinger Band พร้อม Confidence Score</div></div>
+    <div class="feature-card"><div class="feature-icon">🗺️</div><div class="feature-title">Regime Detector</div><div class="feature-desc">จำแนกสภาวะตลาด: Trending / Ranging / Volatile / Breakout</div></div>
+    <div class="feature-card"><div class="feature-icon">🔍</div><div class="feature-title">Audit Agent</div><div class="feature-desc">Claude AI ตรวจสอบ signal แล้วออก verdict: VALID / WEAK / CONFLICTED</div></div>
+    <div class="feature-card"><div class="feature-icon">⚡</div><div class="feature-title">Real-time Data</div><div class="feature-desc">Binance + Yahoo Finance รองรับ Crypto, Stocks, Forex, Indices</div></div>
+    <div class="feature-card"><div class="feature-icon">🔐</div><div class="feature-title">Tier-based Access</div><div class="feature-desc">Free / Subscription / Premium — แต่ละ tier เห็นข้อมูลต่างกัน</div></div>
+    <div class="feature-card"><div class="feature-icon">📊</div><div class="feature-title">PDF Report</div><div class="feature-desc">Export รายงาน Signal + Audit สำหรับ review หลัง trading session</div></div>
+  </div>
+  <div class="pricing" id="pricingSection">
+    <h2>แผนราคา</h2>
+    <div class="pricing-sub">เริ่มฟรี อัปเกรดเมื่อพร้อม</div>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-tier">Free</div>
+        <div class="price-amount">฿0</div>
+        <div class="price-period">ตลอดไป</div>
+        <ul class="price-items">
+          <li>Signal delayed 60 นาที</li><li>ประวัติ 7 วัน</li><li>5 signals ต่อวัน</li>
+          <li class="locked">Confidence Score</li><li class="locked">Regime Detection</li>
+          <li class="locked">Audit Agent</li><li class="locked">PDF Report</li>
+        </ul>
+        <button class="btn btn-outline" style="width:100%" onclick="loginWithGoogle()">เริ่มใช้งาน</button>
+      </div>
+      <div class="price-card featured">
+        <div class="price-badge">แนะนำ</div>
+        <div class="price-tier">Subscription</div>
+        <div class="price-amount">฿399</div>
+        <div class="price-period">ต่อเดือน</div>
+        <ul class="price-items">
+          <li>Real-time Signals</li><li>ประวัติ 90 วัน</li><li>Unlimited signals</li>
+          <li>Confidence Score เต็ม</li><li>Regime Detection + คำแนะนำ</li>
+          <li>Audit Agent (Claude AI)</li><li>PDF Report</li><li class="locked">API Access</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%" onclick="loginWithGoogle()">เริ่มใช้งานฟรี (Login)</button>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Premium</div>
+        <div class="price-amount">Custom</div>
+        <div class="price-period">รายปี / ติดต่อโดยตรง</div>
+        <ul class="price-items">
+          <li>ทุกอย่างใน Subscription</li><li>API Access + API Key</li>
+          <li>Portfolio Intelligence</li><li>Multi-account Monitor</li><li>MT5 Connector (coming)</li>
+        </ul>
+        <button class="btn btn-outline" style="width:100%" onclick="contactPremium()">ติดต่อเรา</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="pageDashboard" class="page">
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebarMobile()"></div>
+
+  <div class="app-shell app-layout">
+
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-logo" onclick="goHome()">
+      <div class="logo-icon">A</div>
+      <div>
+        <div class="logo-text">AMRO</div>
+        <div class="logo-sub">AI TRADING INTELLIGENCE</div>
+      </div>
+    </div>
+
+    <div class="sidebar-watchlist">
+    <div class="sidebar-top">
+      <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarDesktop()" title="Collapse sidebar">◀</button>
+    </div>
+
+    <div class="sidebar-pairs" id="sidebarPairs">
+
+      <div class="sidebar-section-tag">Crypto</div>
+      <button class="pair-item watch-item active" data-sym="BTC/USDT" data-symbol="BTCUSDT">
+        <span class="pair-dot loading" id="pdot-BTC/USDT"></span>
+        <span class="pair-name">BTC/USD</span>
+        <span class="pair-state" id="psub-BTC/USDT">—</span>
+      </button>
+
+      <div class="sidebar-section-tag">Metals</div>
+      <button class="pair-item watch-item" data-sym="GC=F" data-symbol="XAUUSD">
+        <span class="pair-dot" id="pdot-GC=F"></span>
+        <span class="pair-name">XAU/USD</span>
+        <span class="pair-state" id="psub-GC=F">—</span>
+      </button>
+
+      <div class="sidebar-section-tag">Forex</div>
+      <button class="pair-item watch-item" data-sym="EURUSD=X" data-symbol="EURUSD">
+        <span class="pair-dot" id="pdot-EURUSD=X"></span>
+        <span class="pair-name">EUR/USD</span>
+        <span class="pair-state" id="psub-EURUSD=X">—</span>
+      </button>
+      <button class="pair-item watch-item" data-sym="GBPUSD=X" data-symbol="GBPUSD">
+        <span class="pair-dot" id="pdot-GBPUSD=X"></span>
+        <span class="pair-name">GBP/USD</span>
+        <span class="pair-state" id="psub-GBPUSD=X">—</span>
+      </button>
+      <button class="pair-item watch-item" data-sym="USDJPY=X" data-symbol="USDJPY">
+        <span class="pair-dot" id="pdot-USDJPY=X"></span>
+        <span class="pair-name">USD/JPY</span>
+        <span class="pair-state" id="psub-USDJPY=X">—</span>
+      </button>
+      <button class="pair-item watch-item" data-sym="USDCHF=X" data-symbol="USDCHF">
+        <span class="pair-dot" id="pdot-USDCHF=X"></span>
+        <span class="pair-name">USD/CHF</span>
+        <span class="pair-state" id="psub-USDCHF=X">—</span>
+      </button>
+      <button class="pair-item watch-item" data-sym="AUDUSD=X" data-symbol="AUDUSD">
+        <span class="pair-dot" id="pdot-AUDUSD=X"></span>
+        <span class="pair-name">AUD/USD</span>
+        <span class="pair-state" id="psub-AUDUSD=X">—</span>
+      </button>
+      <button class="pair-item watch-item" data-sym="USDCAD=X" data-symbol="USDCAD">
+        <span class="pair-dot" id="pdot-USDCAD=X"></span>
+        <span class="pair-name">USD/CAD</span>
+        <span class="pair-state" id="psub-USDCAD=X">—</span>
+      </button>
+      <button class="pair-item watch-item" data-sym="NZDUSD=X" data-symbol="NZDUSD">
+        <span class="pair-dot" id="pdot-NZDUSD=X"></span>
+        <span class="pair-name">NZD/USD</span>
+        <span class="pair-state" id="psub-NZDUSD=X">—</span>
+      </button>
+
+    </div><!-- /sidebar-pairs -->
+    </div><!-- /sidebar-watchlist -->
+
+    <div class="sidebar-footer">
+      <div class="sidebar-version">AMRO v2.1.0</div>
+    </div>
+
+  </aside><!-- /sidebar -->
+
+  <div class="main-content">
+
+    <header class="dash-header">
+      <div class="dash-header-left">
+        <button class="mobile-sidebar-btn dash-mobile-menu" id="dashAuthBtn" type="button" onclick="toggleAuth()">Login</button>
+        <div>
+          <div class="dash-title" id="dashPairTitle">AMRO AI Trading Intelligence</div>
+          <div id="dashSubtitle">—</div>
+        </div>
+      </div>
+      <div class="dash-right">
+        <div class="dash-status-group health-widget">
+          <div class="health-item"><div class="health-dot ok" id="dotServer"></div><span>Server</span></div>
+          <div class="health-item"><div class="health-dot ok" id="dotData"></div><span>Market Data</span></div>
+          <div class="health-item"><div class="health-dot warn" id="dotMT5"></div><span>MT5</span></div>
+        </div>
+        <span class="dash-clock" id="dashClock">—</span>
+        <span class="dash-time hidden" id="dashTime">—</span>
+        <span class="hidden" id="dataFreshness">—</span>
+        <button class="btn-refresh" type="button" onclick="loadSignal()">⟳ Refresh</button>
+      </div>
+    </header>
+
+    <div id="errorBanner" class="error-banner hidden"></div>
+    <div class="upgrade-banner" id="upgradeBanner" style="display:none">
+      <div class="upgrade-text">
+        <h3>🔓 Login เพื่อใช้งานฟรี</h3>
+        <p>ระบบสมาชิกถูกปิดแล้ว — ใช้งาน Audit Agent ได้ฟรีหลัง Login</p>
+      </div>
+      <button class="btn-upgrade" onclick="loginWithGoogle()">Login</button>
+    </div>
+
+    <!-- ══ Execution decision strip ═══════════════════════ -->
+    <section class="exec-strip market-decision-card loading" id="permissionBanner" aria-label="Execution decision">
+      <div class="exec-strip-left">
+        <svg class="exec-ban-icon" id="mdcBanIcon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+          <line x1="8" y1="8" x2="16" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="exec-ban-stack">
+          <span class="exec-strip-hero" id="permState">LOADING</span>
+          <span class="exec-strip-blocked" id="mdcExecBlocked">—</span>
+        </div>
+      </div>
+      <div class="exec-strip-center">
+        <div class="exec-strip-k">Execution decision</div>
+        <div class="exec-strip-decision" id="mdcExecDecision">—</div>
+        <div class="exec-strip-sub" id="mdcExecSub">—</div>
+      </div>
+      <div class="exec-strip-risk">
+        <span class="exec-strip-risk-k">Main risk</span>
+        <div class="exec-risk-row">
+          <span class="exec-risk-dot" id="mdcRiskDot" aria-hidden="true"></span>
+          <span class="exec-strip-risk-v" id="mdcRiskWarning">—</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="attention-banner muted hidden" id="attentionBanner">
+      <span id="attentionIcon">ℹ</span>
+      <span id="attentionText">—</span>
+    </div>
+
+    <section class="ops-surface cockpit-main" id="amroContextPanel" aria-label="AMRO operational surface">
+      <div class="ops-left-split">
+        <div class="ops-governance" id="opsGovernance">
+          <h2 class="ops-section-title ops-title-accent">Market governance state</h2>
+          <div class="gov-conclusion-block">
+            <div class="gov-headline-row">
+              <span class="gov-warn-icon" id="govWarnIcon" aria-hidden="true">!</span>
+              <div class="gov-conclusion-body">
+                <div class="gov-conclusion tone-weak" id="govConclusion" aria-live="polite">Awaiting runtime evidence…</div>
+                <p class="gov-evidence-caption hidden" id="govEvidenceCaption"></p>
+              </div>
+            </div>
+            <div class="gov-denial-compact hidden" id="govDenialCompact">
+              <div class="gov-denial-primary" id="govDenialPrimary"></div>
+              <div class="gov-denial-detail hidden" id="govDenialDetail"></div>
+            </div>
+            <div class="gov-conclusion-evidence hidden" id="govConclusionEvidence"></div>
+          </div>
+          <div class="gov-integrity-block">
+            <div class="gov-integrity-k">Runtime integrity</div>
+            <p class="gov-integrity-fallback" id="govIntegrityFallback">Validation unavailable</p>
+            <ul class="gov-integrity-list hidden" id="govIntegrityList"></ul>
+          </div>
+          <div class="cognition-risk-block" id="cognitionRiskBlock">
+            <div class="cognition-risk-k">Runtime cognition risk</div>
+            <p class="cognition-risk-fallback hidden" id="cognitionRiskFallback">Awaiting telemetry</p>
+            <div class="cognition-risk-grid hidden" id="cognitionRiskGrid"></div>
+          </div>
+          <span class="acp-asset hidden" id="chartSymbolLabel" aria-hidden="true">—</span>
+          <span class="acp-exec-state hidden" id="govPrimaryState" aria-hidden="true">—</span>
+        </div>
+
+        <div class="ops-calculator" id="sidebarAssetPanel">
+          <h2 class="ops-section-title ops-section-title-dim">Position calculator</h2>
+          <div class="panel-card panel-calc panel-calc-ops card-relative">
+            <div class="calc-blocked-overlay hidden" id="calcBlockedOverlay">
+              <div style="font-size:20px;color:#64748b;">○</div>
+              <div class="calc-blocked-msg">Standby<br><span style="font-size:10px;font-weight:400;color:#475569;">ไม่มี high-quality opportunity ขณะนี้</span></div>
+            </div>
+            <div class="calc-weak-overlay hidden" id="calcWeakOverlay">
+              <div class="calc-weak-msg">⚠ Low conviction — ลด size ครึ่งหนึ่ง</div>
+            </div>
+
+            <div class="calc-direction-toggle">
+              <button class="calc-dir-btn active-long" id="calcDirLong" onclick="setCalcDir('LONG')">▲ LONG</button>
+              <button class="calc-dir-btn" id="calcDirShort" onclick="setCalcDir('SHORT')">▼ SHORT</button>
+            </div>
+
+            <div class="calc-grid">
+              <div class="calc-field">
+                <label class="calc-label">ทุน</label>
+                <div class="calc-input-wrap">
+                  <input type="number" id="calcBalance" class="calc-input" value="1000" min="1" oninput="calcPosition()">
+                  <span class="calc-unit">$</span>
+                </div>
+              </div>
+              <div class="calc-field">
+                <label class="calc-label">Risk %</label>
+                <div class="calc-input-wrap">
+                  <input type="number" id="calcRisk" class="calc-input" value="1" min="0.1" max="20" step="0.1" oninput="calcPosition()">
+                  <span class="calc-unit">%</span>
+                </div>
+              </div>
+              <div class="calc-field">
+                <label class="calc-label">Stop Loss</label>
+                <div class="calc-input-wrap">
+                  <input type="number" id="calcSL" class="calc-input" value="20" min="1" oninput="calcPosition()">
+                  <span class="calc-unit">pips</span>
+                </div>
+              </div>
+              <div class="calc-field">
+                <label class="calc-label">R:R</label>
+                <div class="calc-input-wrap">
+                  <span class="calc-unit">1 :</span>
+                  <input type="number" id="calcRR" class="calc-input" value="2" min="0.5" step="0.5" oninput="calcPosition()">
+                </div>
+              </div>
+            </div>
+
+            <div class="calc-entry-bar">
+              <span style="color:var(--muted);">Entry</span>
+              <span id="calcEntryDisplay" style="font-weight:700;color:var(--blue);">—</span>
+            </div>
+
+            <div class="calc-results">
+              <div class="calc-result-row">
+                <span class="calc-result-label">Lot</span>
+                <span class="calc-result-val text-blue" id="calcLotSize">—</span>
+              </div>
+              <div class="calc-result-row">
+                <span class="calc-result-label">Risk $</span>
+                <span class="calc-result-val text-orange" id="calcRiskAmt">—</span>
+              </div>
+              <div class="calc-result-row">
+                <span class="calc-result-label">SL</span>
+                <span class="calc-result-val text-red" id="calcSLPrice">—</span>
+              </div>
+              <div class="calc-result-row">
+                <span class="calc-result-label">TP</span>
+                <span class="calc-result-val text-green" id="calcTPPrice">—</span>
+              </div>
+              <div class="calc-result-row">
+                <span class="calc-result-label">Profit</span>
+                <span class="calc-result-val text-green" id="calcProfit">—</span>
+              </div>
+            </div>
+
+            <div class="calc-lot-breakdown" id="calcLotBreakdown"></div>
+          </div>
+        </div>
+      </div><!-- /ops-left-split -->
+
+      <aside class="ops-environment panel-audit" id="auditPanelCard">
+        <h2 class="ops-section-title ops-section-title-dim">Environment context</h2>
+        <div class="env-lean-flat hidden" id="auditContextNote">
+          <span class="env-lean-icon" aria-hidden="true">i</span>
+          <div>
+            <div class="env-lean-line1">Behavioral pressure only</div>
+            <div class="env-lean-line2">Execution remains blocked</div>
+          </div>
+        </div>
+        <div class="audit-result-card" id="auditResultCard">
+          <div class="audit-dir-block buy">
+            <div class="audit-dir-head">
+              <span class="audit-dir-label">Upside pressure</span>
+              <span class="audit-dir-pct" id="auditBuyPct">—</span>
+            </div>
+            <div class="audit-dir-bar-track">
+              <div class="audit-dir-bar-fill" id="auditBuyBar" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="audit-dir-block sell">
+            <div class="audit-dir-head">
+              <span class="audit-dir-label">Downside pressure</span>
+              <span class="audit-dir-pct" id="auditSellPct">—</span>
+            </div>
+            <div class="audit-dir-bar-track">
+              <div class="audit-dir-bar-fill" id="auditSellBar" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="audit-bias-footer">
+            <span class="audit-bias-label">Pressure imbalance</span>
+            <span class="audit-bias-value bias-neutral" id="auditMarketBias">—</span>
+          </div>
+          <div class="env-threshold-row">
+            <span class="env-threshold-k">Participation threshold</span>
+            <span class="env-threshold-v tone-unavailable" id="envGovThreshold">Unavailable</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <div class="explain-card hidden" id="explainCard">
+      <span class="explain-label">Why:</span>
+      <span id="explainText">—</span>
+    </div>
+
+    <section class="telemetry-strip bottom-metrics-bar" id="runtimeMetricsBar">
+      <div class="bm-cell">
+        <span class="bm-glyph bm-glyph-health" aria-hidden="true"></span>
+        <div class="bm-cell-inner">
+          <span class="bm-label">Runtime health</span>
+          <span class="bm-status bm-chip-neutral" id="bmRuntimeHealth">—</span>
+        </div>
+      </div>
+      <div class="bm-cell">
+        <span class="bm-glyph bm-glyph-quality" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <path d="M3 14c2.5-4 4.5-4 7 0s4.5 4 7 0 4.5-4 7 0"/>
+          </svg>
+        </span>
+        <div class="bm-cell-inner">
+          <span class="bm-label">Market quality</span>
+          <span class="bm-status bm-chip-neutral" id="bmMarketQuality">—</span>
+        </div>
+      </div>
+      <div class="bm-cell">
+        <span class="bm-glyph bm-glyph-pressure" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="8"/>
+            <path d="M12 8v5l3 2"/>
+          </svg>
+        </span>
+        <div class="bm-cell-inner">
+          <span class="bm-label">Market pressure</span>
+          <span class="bm-status bm-chip-neutral" id="bmParticipationPressure">—</span>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mc-footer" id="mcFooter">
+      <span>AMRO v2.1.0</span>
+      <span class="mc-footer-center" id="mcFooterMeta">—</span>
+      <span class="mc-footer-ops"><span class="mc-ops-dot" aria-hidden="true"></span> System operational</span>
+    </footer>
+
+  </div><!-- /main-content -->
+  </div><!-- /app-layout -->
+</div><!-- /pageDashboard -->
+
+<script>
+// ── Config ──────────────────────────────────────────────
+// Same host as the page — avoids localhost ↔ 127.0.0.1 CORS mismatches
+const API_URL = window.location.origin;
+const PB_URL  = `${window.location.protocol}//${window.location.hostname}:8090`;
+
+// ── PocketBase ──────────────────────────────────────────
+const pb = window.PocketBase
+  ? new window.PocketBase(PB_URL)
+  : null;
+
+// ── State ───────────────────────────────────────────────
+const state = {
+  user: null,
+  tier: 'free',
+  symbol: 'BTC/USDT',
+  source: 'binance',
+  signalData: null,
+};
+
+// ── UI Helpers ──────────────────────────────────────────
+function showLoading(text='กำลังโหลด...') {
+  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3500);
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.body.classList.toggle('shell-dashboard', id === 'pageDashboard');
+  window.scrollTo(0,0);
+}
+
+function goHome() {
+  if (state.user) showPage('pageDashboard');
+  else showPage('pageLanding');
+}
+
+function scrollToPricing() {
+  showPage('pageLanding');
+  setTimeout(() => document.getElementById('pricingSection').scrollIntoView({behavior:'smooth'}), 100);
+}
+
+// ── Auth ────────────────────────────────────────────────
+async function loginWithGoogle() {
+  try {
+    if (!pb) {
+      showToast('❌ ไม่สามารถโหลดระบบ Login (PocketBase SDK) — โปรดลอง reload หรือเช็ค network/CDN', 'error');
+      return;
+    }
+    showLoading('กำลังเชื่อมต่อ Google...');
+    const authData = await pb.collection('users').authWithOAuth2({
+      provider: 'google',
+    });
+    state.user = authData.record;
+    // Membership system disabled: login grants access.
+    state.tier = 'subscription';
+    await afterLogin();
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    showToast('❌ Login ล้มเหลว: ' + (err.message || 'ลองใหม่อีกครั้ง'), 'error');
+  }
+}
+
+async function afterLogin() {
+  updateNav();
+  showPage('pageDashboard');
+  await loadSignal();
+  hideLoading();
+  showToast('✅ เข้าสู่ระบบสำเร็จ ยินดีต้อนรับ ' + (state.user.name || state.user.email), 'success');
+}
+
+function logout() {
+  pb?.authStore?.clear();
+  state.user = null;
+  state.tier = 'free';
+  updateNav();
+  showPage('pageLanding');
+  showToast('ออกจากระบบแล้ว');
+}
+
+function toggleAuth() {
+  if (state.user) logout();
+  else loginWithGoogle();
+}
+
+function updateNav() {
+  const badge  = document.getElementById('tierBadge');
+  const login  = document.getElementById('btnLogin');
+  const logout = document.getElementById('btnLogout');
+  const upgrade= document.getElementById('btnUpgrade');
+  const upBanner = document.getElementById('upgradeBanner');
+  const dashAuth = document.getElementById('dashAuthBtn');
+
+  const mobileBtn = document.getElementById('mobileSidebarBtn');
+  if (state.user) {
+    login.style.display = 'none';
+    logout.classList.remove('hidden');
+    badge.style.display = '';
+    badge.textContent = 'FREE';
+    badge.className = 'nav-tier tier-free';
+    upgrade.style.display = 'none';
+    if (upBanner) upBanner.style.display = 'none';
+    if (dashAuth) dashAuth.textContent = 'Logout';
+    if (mobileBtn) mobileBtn.style.display = '';  // visible (CSS media query hides on desktop)
+  } else {
+    login.style.display = '';
+    logout.classList.add('hidden');
+    badge.style.display = 'none';
+    upgrade.style.display = 'none';
+    if (mobileBtn) mobileBtn.style.display = 'none';
+    if (dashAuth) dashAuth.textContent = 'Login';
+  }
+}
+
+// ── Check existing auth session ──────────────────────────
+function checkSession() {
+  if (!pb) return;
+  if (pb.authStore.isValid) {
+    state.user = pb.authStore.model;
+    // Membership system disabled: any valid session grants access.
+    state.tier = 'subscription';
+    updateNav();
+    showPage('pageDashboard');
+    loadSignal();
+  }
+}
+
+// ── Payments ────────────────────────────────────────────
+async function startCheckout() {
+  if (!state.user) { loginWithGoogle(); return; }
+  showToast('✅ ระบบสมาชิกถูกปิดแล้ว — ใช้งานได้ฟรีหลัง Login', 'success');
+}
+
+function contactPremium() {
+  showToast('📧 ติดต่อ: amro@yourdomain.com สำหรับ Premium plan');
+}
+
+// ── API ──────────────────────────────────────────────────
+async function apiFetch(path, opts={}) {
+  const { timeoutMs = 90000, ...fetchOpts } = opts;
+  const token = pb?.authStore?.token;
+  const headers = { 'Content-Type':'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(API_URL + path, { ...fetchOpts, headers, signal: ctrl.signal });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const detail = err.detail || err.message || res.statusText;
+      throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+    }
+    return res.json();
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('Request timed out — server may still be processing. Try Refresh.');
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// ── Signal ───────────────────────────────────────────────
+function selectSymbol(btn) {
+  // Update sidebar active state
+  document.querySelectorAll('.pair-item').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Mark as loading
+  const sym0 = btn.dataset.sym;
+  const dot = document.getElementById('pdot-' + sym0);
+  if (dot) dot.className = 'pair-dot loading';
+
+  state.symbol = sym0;
+  state.source  = btn.dataset.src;
+
+  // Adjust default SL pips per instrument
+  const sym = state.symbol;
+  const slInput = document.getElementById('calcSL');
+  if (sym.includes('USDT') || sym.includes('BTC') || sym.includes('ETH')) {
+    slInput.value = 500;
+  } else if (sym === 'GC=F') {
+    slInput.value = 200;
+  } else if (sym.includes('JPY')) {
+    slInput.value = 30;
+  } else {
+    slInput.value = 20;
+  }
+
+  // Close mobile sidebar after selection
+  closeSidebarMobile();
+  loadSignal();
+}
+
+// ── Sidebar: desktop collapse ────────────────────────────
+function toggleSidebarDesktop() {
+  const sb  = document.getElementById('sidebar');
+  const btn = document.getElementById('sidebarCollapseBtn');
+  if (!sb) return;
+  const collapsed = sb.classList.toggle('collapsed');
+  if (btn) btn.textContent = collapsed ? '▶' : '◀';
+}
+
+// ── Sidebar: mobile open/close ───────────────────────────
+function toggleSidebarMobile() {
+  const sb  = document.getElementById('sidebar');
+  const ov  = document.getElementById('sidebarOverlay');
+  if (!sb) return;
+  const open = sb.classList.toggle('mobile-open');
+  if (ov) ov.classList.toggle('show', open);
+}
+function closeSidebarMobile() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  if (sb) sb.classList.remove('mobile-open');
+  if (ov) ov.classList.remove('show');
+}
+
+function bindWatchlistPipelineTriggers() {
+  document.querySelectorAll('.watch-item').forEach(item => {
+    item.addEventListener('click', () => {
+      setActiveSymbolFromWatch(item);
+    });
+  });
+}
+
+function setActiveSymbolFromWatch(item) {
+  if (!item) return;
+  selectSymbol(item);
+}
+
+async function loadSignal() {
+  const sym   = encodeURIComponent(state.symbol);
+  const url   = `/api/signals/${sym}?audit=false&interval=1h`;
+  renderGovernancePanel(null);
+  applyAuditHierarchy(null);
+
+  try {
+    showLoading('กำลังดึง governance state จาก ' + state.symbol + '...');
+    const data = await apiFetch(url);
+    hideLoading();
+    document.getElementById('errorBanner').classList.add('hidden');
+    renderDashboard(data);
+  } catch(e) {
+    hideLoading();
+    const msg = e.message || 'ไม่สามารถดึงข้อมูลได้';
+    const banner = document.getElementById('errorBanner');
+    banner.textContent = '⚠️ ' + msg + (msg.includes('fetch') ? ' — ตรวจสอบว่า API server กำลังรันอยู่ (python app/main.py)' : '');
+    banner.classList.remove('hidden');
+    showToast('❌ ' + msg, 'error');
+  }
+
+  const t = new Date();
+  const timeStr = t.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+  const dashTime = document.getElementById('dashTime');
+  if (dashTime) dashTime.textContent = 'อัปเดต: ' + t.toLocaleTimeString('th-TH');
+  const dashClock = document.getElementById('dashClock');
+  if (dashClock) dashClock.textContent = timeStr;
+}
+
+// ── Render ───────────────────────────────────────────────
+function renderDashboard(d) {
+  state.signalData = d;
+  // Membership system disabled: ignore server tier and keep free-access state.
+
+  const approved  = d.approved === true;
+  const isAbstain = !approved;
+  const safe = (el, val) => { const e = document.getElementById(el); if (e) e.textContent = val; };
+  const rm = d.runtime_metrics || null;
+  const runtimeTrust = rm && rm.runtime_trust !== undefined ? rm.runtime_trust : null;
+
+  // ── Runtime trust tier (not fake win-probability) ───────
+  let conviction, convClass, convChipClass;
+  if (!approved || isAbstain || runtimeTrust === null) {
+    conviction = null; convClass = 'blocked'; convChipClass = '';
+  } else if (runtimeTrust >= 0.7) {
+    conviction = 'HIGH TRUST'; convClass = 'strong'; convChipClass = 'conviction-strong';
+  } else if (runtimeTrust >= 0.5) {
+    conviction = 'MODERATE TRUST'; convClass = 'moderate'; convChipClass = 'conviction-moderate';
+  } else {
+    conviction = 'LOW TRUST'; convClass = 'low'; convChipClass = 'conviction-weak';
+  }
+
+  // ── Header ─────────────────────────────────────────────
+  safe('dashSubtitle', state.symbol + (d.timestamp ? ' • ' + d.timestamp.replace('T',' ').slice(0,19) + ' UTC+0' : ''));
+  syncContextPanelHeader();
+  const dotData = document.getElementById('dotData');
+  if (dotData) dotData.className = 'health-dot ' + (d.price ? 'ok' : 'err');
+  safe('dataFreshness', d.timestamp ? d.timestamp.replace('T',' ').slice(0,16) + ' UTC' : '—');
+  updateSessionWidget();
+
+  // ── Market Decision Card (unified hero) ──────────────────
+  renderMarketDecisionCard(d, approved);
+  renderAmroContextPanel(d, approved);
+
+  const hero = deriveMarketHeroStatus(d, approved);
+  const heroAction = buildHeroRecommendedAction(d, hero);
+
+  const vListEarly = document.getElementById('validationList');
+  if (vListEarly) {
+    const vItems = [heroAction, normalizeHeroRiskWarning(d)].filter(x => x && x !== '—');
+    vListEarly.innerHTML = vItems.length
+      ? vItems.map(x => `<li>${x}</li>`).join('')
+      : '<li>Monitoring market conditions</li>';
+  }
+
+  const aiValEarly = document.getElementById('aiConsensusVal');
+  const aiPctEarly = document.getElementById('aiConsensusPct');
+  if (aiValEarly) {
+    const govState = rm?.governance_state || d.governance?.verdict || 'STANDBY';
+    aiValEarly.textContent = approved && !isAbstain ? govState : 'NO TRADE';
+    aiValEarly.className = 'ai-consensus-val ' + (approved && !isAbstain ? 'approved' : 'abstain');
+    if (aiPctEarly) {
+      const absPct = rm?.abstention_pressure !== undefined ? (rm.abstention_pressure * 100).toFixed(0) + '% abstention' : '—';
+      aiPctEarly.textContent = approved && !isAbstain
+        ? (runtimeTrust !== null ? (runtimeTrust * 100).toFixed(0) + '% runtime trust' : absPct)
+        : absPct;
+    }
+  }
+
+  // ── Execution conditions (cockpit) ─────────────────────
+  const execEntry = document.getElementById('execEntry');
+  const execSL    = document.getElementById('execSL');
+  const execTP    = document.getElementById('execTP');
+  const execRR    = document.getElementById('execRR');
+  if (execEntry) execEntry.textContent = (d.entry !== undefined && d.entry !== null) ? String(d.entry) : (state.signalData?.entry ? String(state.signalData.entry) : '—');
+  if (execSL)    execSL.textContent    = (d.sl !== undefined && d.sl !== null) ? String(d.sl) : (state.signalData?.sl ? String(state.signalData.sl) : '—');
+  if (execTP)    execTP.textContent    = (d.tp !== undefined && d.tp !== null) ? String(d.tp) : (state.signalData?.tp ? String(state.signalData.tp) : '—');
+  if (execRR)    execRR.textContent    = (d.rr_ratio !== undefined && d.rr_ratio !== null) ? String(d.rr_ratio) : (state.signalData?.rr_ratio ? String(state.signalData.rr_ratio) : '—');
+
+  // Sub-labels removed — unified hero card handles guidance
+
+  const regime = d.regime_detail?.type || d.regime || '';
+  const permBadge = document.getElementById('permissionBadge');
+  if (permBadge) {
+    if (approved && !isAbstain) {
+      permBadge.className   = 'allowed-badge';
+      permBadge.textContent = conviction ? '● ' + conviction : '● ALLOWED';
+    } else {
+      permBadge.className   = 'protected-badge';
+      permBadge.textContent = '○ Standby';
+    }
+  }
+
+  // ── Governance reason short (humanized) ──────────────────
+  const govShort = document.getElementById('govReasonShort');
+  if (govShort) {
+    if (d.governance?.reason && d.governance.reason !== 'ok') {
+      govShort.textContent = humanizeGovernanceReason(d.governance.reason) || '—';
+      govShort.style.color = '';
+    } else if (approved && !isAbstain) {
+      govShort.textContent = 'Participation conditions met';
+      govShort.style.color = 'var(--green)';
+    } else {
+      govShort.textContent = '—';
+      govShort.style.color = '';
+    }
+  }
+
+  // ── Conviction Display (replaces conf bar) ─────────────
+  const convDisplay = document.getElementById('convictionDisplay');
+  const convLabel   = document.getElementById('convLabel');
+  const convScore   = document.getElementById('convScore');
+  if (convDisplay && convLabel && convScore) {
+    if (approved && !isAbstain) {
+      convDisplay.className = 'conviction-display ' + convClass;
+      const colorMap = { strong:'#4ade80', moderate:'#34d399', low:'#fbbf24', blocked:'var(--muted)' };
+      convLabel.textContent = conviction || '—';
+      convLabel.style.color = colorMap[convClass] || 'var(--muted)';
+      convScore.textContent = runtimeTrust !== null ? (runtimeTrust * 100).toFixed(0) + '%' : '?';
+    } else {
+      convDisplay.className = 'conviction-display blocked';
+      convLabel.textContent = 'No permission';
+      convLabel.style.color = 'var(--muted)';
+      convScore.textContent = '—';
+    }
+    document.getElementById('confHint')?.classList.add('hidden');
+  }
+
+  // ── Decision Explanation Card (humanized) ────────────────
+  const explainCard = document.getElementById('explainCard');
+  const explainText = document.getElementById('explainText');
+  const govReason   = d.governance?.reason;
+  if (!approved || isAbstain) {
+    explainCard.classList.remove('hidden');
+    explainText.textContent = govReason && govReason !== 'ok'
+      ? humanizeGovernanceReason(govReason.split(';')[0])
+      : 'No survivable participation condition — system in standby';
+  } else if (convClass === 'low') {
+    explainCard.classList.remove('hidden');
+    const rp = rm?.risk_pressure !== undefined ? (rm.risk_pressure * 100).toFixed(0) + '% risk pressure' : 'elevated risk pressure';
+    explainText.textContent = `Low runtime trust — ${rp} · reduced participation limits apply`;
+  } else {
+    explainCard.classList.toggle('hidden', !govReason || govReason === 'ok');
+    if (explainText && govReason && govReason !== 'ok') {
+      explainText.textContent = humanizeGovernanceReason(govReason.split(';')[0]) || govReason.split(';')[0];
+    }
+  }
+
+  // ── Attention Banner ───────────────────────────────────
+  const attBanner = document.getElementById('attentionBanner');
+  const attIcon   = document.getElementById('attentionIcon');
+  const attText   = document.getElementById('attentionText');
+  if (d.delayed) {
+    attBanner.className = 'attention-banner warn';
+    attIcon.textContent = '⏱';
+    attText.textContent = 'ข้อมูล governance ล่าช้า 60 นาที — อัปเกรด Subscription เพื่อ real-time';
+  } else if (d.governance?.risk_mode === 'DEFENSIVE') {
+    attBanner.className = 'attention-banner warn';
+    attIcon.textContent = '⚠';
+    attText.textContent = 'Defensive mode — structure unstable · use half normal position size';
+  } else if (convClass === 'low') {
+    attBanner.className = 'attention-banner warn';
+    attIcon.textContent = '⚠';
+    attText.textContent = 'Low runtime trust — verify governance and abstention pressure before acting';
+  } else if (approved && !isAbstain) {
+    attBanner.className = 'attention-banner ok';
+    attIcon.textContent = '✓';
+    attText.textContent = 'Participation permitted within governance limits · verify risk parameters';
+  } else {
+    attBanner.className = 'attention-banner muted';
+    attIcon.textContent = 'ℹ';
+    attText.textContent = 'System monitoring — no participation permission at this time';
+  }
+  attBanner.classList.remove('hidden');
+
+  // ── State Grid: Market State ───────────────────────────
+  const regimeDesc = d.regime_detail?.description || '';
+  safe('stateRegime', regime || '—');
+  safe('stateRegimeDesc', regimeDesc);
+  // Regime action hint
+  const actionMap = {
+    TRENDING_UP:   '↑ Monitor upside pressure',
+    TRENDING_DOWN: '↓ Monitor downside pressure',
+    RANGING:       '↔ Monitor range pressure',
+    VOLATILE:      '⚡ Reduce exposure',
+    BREAKOUT:      '▲ Confirm stability',
+    TRANSITIONAL:  '? Wait confirmation',
+  };
+  const actionHint  = document.getElementById('regimeActionHint');
+  const actionText  = actionMap[regime];
+  if (actionHint) {
+    if (actionText) {
+      actionHint.textContent = actionText;
+      actionHint.classList.remove('hidden');
+    } else {
+      actionHint.classList.add('hidden');
+    }
+  }
+  safe('stateAdvice', d.regime_detail?.trade_advice || '');
+
+  const structEl = document.getElementById('stateStructure');
+  if (structEl) structEl.textContent = d.brain?.market_structure || regime;
+  const dirChip = document.getElementById('stateDirection');
+  if (dirChip) {
+    const govState = rm?.governance_state || d.governance?.verdict || '—';
+    dirChip.textContent = govState;
+    dirChip.className   = 'state-chip ' + (approved && !isAbstain ? 'chip-green' : 'chip-muted');
+  }
+  const confChip = document.getElementById('stateConf');
+  if (confChip) {
+    if (conviction) {
+      const short = { 'STRONG':'STRONG', 'MODERATE':'MOD', 'LOW CONVICTION':'LOW', 'MODERATE (est)':'MOD' };
+      confChip.textContent = short[conviction] || conviction;
+      confChip.className   = 'state-chip ' + (convClass === 'strong' ? 'chip-green' : convClass === 'moderate' ? 'chip-blue' : 'chip-orange');
+    } else {
+      confChip.textContent = 'STANDBY';
+      confChip.className   = 'state-chip chip-muted';
+    }
+  }
+  document.getElementById('delayedBanner')?.classList.toggle('hidden', !d.delayed);
+  document.getElementById('regimeLocked')?.classList.toggle('hidden', !!d.regime_detail);
+
+  // ── Audit Result Card — market environment ───────────────
+  renderAuditResultCard(d);
+  applyAuditHierarchy(d.market_governance || null);
+
+  // ── Audit Scores (expandable) ──────────────────────────
+  if (d.audit_scores) {
+    const as = d.audit_scores;
+    const sc = v => v !== undefined ? (v * 100).toFixed(0) + '%' : '—';
+    const badge = (val, invert=false) => {
+      if (val === undefined) return 'chip-muted';
+      const n = invert ? 1 - val : val;
+      return n >= .8 ? 'stable' : n >= .6 ? 'moderate' : n >= .4 ? 'weak' : 'dangerous';
+    };
+    const grid = document.getElementById('auditScoresGrid');
+    if (grid) grid.innerHTML = `
+      <div class="audit-score-item"><span class="audit-score-key" data-tooltip="Market structure strength">Trend Stability</span><span class="audit-score-val score-badge ${badge(as.structure_confidence)}">${sc(as.structure_confidence)}</span></div>
+      <div class="audit-score-item"><span class="audit-score-key" data-tooltip="Reliability degradation">Reliability</span><span class="audit-score-val score-badge ${badge(as.signal_reliability)}">${sc(as.signal_reliability)}</span></div>
+      <div class="audit-score-item"><span class="audit-score-key" data-tooltip="Noise / chaos level">Market Noise</span><span class="audit-score-val score-badge ${badge(as.entropy_score, true)}">${sc(as.entropy_score)}</span></div>
+      <div class="audit-score-item"><span class="audit-score-key" data-tooltip="Volatility coherence">Vol Coherence</span><span class="audit-score-val score-badge ${badge(as.volatility_coherence)}">${sc(as.volatility_coherence)}</span></div>
+      <div class="audit-score-item"><span class="audit-score-key" data-tooltip="Volatility stress">Vol Stress</span><span class="audit-score-val score-badge ${badge(as.instability_score, true)}">${sc(as.instability_score)}</span></div>
+      <div class="audit-score-item"><span class="audit-score-key" data-tooltip="Regime shift">Market Change</span><span class="audit-score-val score-badge ${badge(as.distribution_shift, true)}">${sc(as.distribution_shift)}</span></div>
+    `;
+    const notesEl = document.getElementById('auditNotes');
+    if (notesEl) notesEl.textContent = as.notes?.length ? '⚠ ' + as.notes.join(' · ') : '';
+  } else {
+    const grid = document.getElementById('auditScoresGrid');
+    if (grid) grid.innerHTML = '<div class="audit-score-item"><span class="audit-score-key">Trend Stability</span><span class="audit-score-val">—</span></div>';
+  }
+
+  const riskMode = d.governance?.risk_mode || 'NORMAL';
+  const riskEl = document.getElementById('riskEnv');
+  if (riskEl) {
+    riskEl.textContent = riskMode;
+    riskEl.className = 'rs-val ' + (riskMode === 'DEFENSIVE' ? 'text-orange' : 'risk-normal');
+  }
+
+  renderSystemHealthStrip(d, approved);
+
+  // ── Calculator — conviction-aware ─────────────────────
+  const blocked = !approved || isAbstain;
+  const isLow   = convClass === 'low';
+  document.getElementById('calcBlockedOverlay')?.classList.toggle('hidden', !blocked);
+  document.getElementById('calcWeakOverlay')?.classList.toggle('hidden', blocked || !isLow);
+
+  // ── Keep calculator state if legacy directional data is present ─────────────
+  if (d.direction === 'LONG' || d.direction === 'SHORT') setCalcDir(d.direction);
+  calcPosition();
+
+  // ── Sidebar: update active pair dot + state label ────────
+  const activeSym = state.symbol;
+  const pairDot   = document.getElementById('pdot-' + activeSym);
+  const pairSub   = document.getElementById('psub-' + activeSym);
+  if (pairDot) pairDot.className = 'pair-dot ' + (approved && !isAbstain ? 'allowed' : 'standby');
+  if (pairSub) pairSub.textContent = formatWatchlistState(d, approved, isAbstain);
+
+  // ── Pipeline summary chip ─────────────────────────────
+  safe('pipelineSummaryChip', approved && !isAbstain ? 'Last: Permission active' : 'Last: Standby');
+
+  // ── Decision Timeline ─────────────────────────────────
+  addTimelineEvent(d, conviction);
+}
+
+function formatWatchlistState(d, approved, isAbstain) {
+  const env = d.market_environment;
+  if (env && env.upside_pressure_pct != null && env.downside_pressure_pct != null) {
+    const bias = computeMarketBias(env.upside_pressure_pct, env.downside_pressure_pct);
+    if (bias.label && bias.label !== '—') {
+      return bias.label.toUpperCase().replace(/-/g, ' ');
+    }
+  }
+  const regime = d.regime_detail?.type || d.regime || '';
+  if (regime) return regime.replace(/_/g, ' ');
+  if (!approved || isAbstain) return 'STANDBY';
+  return 'ACTIVE';
+}
+
+function mapRuntimeHealth(rm) {
+  const raw = String(rm?.runtime_health || '').toUpperCase();
+  const trust = rm?.runtime_trust;
+  if (raw.includes('DISABLED') || raw.includes('UNTRUSTED')) return { label: 'Critical', chip: 'critical' };
+  if (raw.includes('DEGRADED')) return { label: 'Degraded', chip: 'degraded' };
+  if (trust != null && trust < 0.45) return { label: 'Critical', chip: 'critical' };
+  if (trust != null && trust < 0.65) return { label: 'Degraded', chip: 'degraded' };
+  return { label: 'Stable', chip: 'stable' };
+}
+
+function mapMarketQuality(rm) {
+  const q = rm?.market_quality;
+  if (q == null) return { label: '—', chip: 'neutral' };
+  if (q >= 0.7) return { label: 'Strong', chip: 'strong' };
+  if (q >= 0.45) return { label: 'Neutral', chip: 'neutral' };
+  return { label: 'Weak', chip: 'weak' };
+}
+
+function mapParticipationPressure(rm) {
+  const p = rm?.abstention_pressure;
+  if (p == null) return { label: '—', chip: 'neutral' };
+  if (p < 0.25) return { label: 'Low', chip: 'low' };
+  if (p < 0.45) return { label: 'Moderate', chip: 'moderate' };
+  if (p < 0.65) return { label: 'Elevated', chip: 'elevated' };
+  return { label: 'High', chip: 'high' };
+}
+
+function mapRiskPosture(rm, approved) {
+  if (!rm) return { label: 'Unavailable', chip: 'neutral' };
+  if (!approved) return { label: 'Unavailable', chip: 'neutral' };
+  const raw = String(rm.exposure_state || '').toLowerCase().trim();
+  if (!raw) return { label: 'Unavailable', chip: 'neutral' };
+  if (raw === 'locked') return { label: 'Locked', chip: 'locked' };
+  if (raw === 'constrained') return { label: 'Limited', chip: 'limited' };
+  if (raw === 'balanced' || raw === 'active') return { label: 'Active', chip: 'active' };
+  return { label: 'Unavailable', chip: 'neutral' };
+}
+
+function renderSystemHealthStrip(d, approved) {
+  const rm = d.runtime_metrics || null;
+  const ids = ['bmRuntimeHealth', 'bmMarketQuality', 'bmParticipationPressure'];
+  const setStatus = (id, mapped) => {
+    const el = document.getElementById(id);
+    if (!el || !mapped) return;
+    el.textContent = mapped.label;
+    el.className = 'bm-status bm-chip-' + mapped.chip;
+  };
+  if (!rm) {
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = 'Unavailable';
+      el.className = 'bm-status bm-chip-neutral';
+    });
+    return;
+  }
+  setStatus('bmRuntimeHealth', mapRuntimeHealth(rm));
+  setStatus('bmMarketQuality', mapMarketQuality(rm));
+  setStatus('bmParticipationPressure', mapParticipationPressure(rm));
+}
+
+function computeMarketBias(upside, downside) {
+  if (upside == null || downside == null) return { label: '—', tone: 'neutral' };
+  const diff = upside - downside;
+  const abs = Math.abs(diff);
+  if (abs < 4) return { label: 'Neutral', tone: 'neutral' };
+  if (diff > 0) {
+    if (abs < 12) return { label: 'Neutral - Upside Pressure', tone: 'buy' };
+    if (abs < 20) return { label: 'Upside Pressure', tone: 'buy' };
+    return { label: 'Upside-Dominant', tone: 'buy' };
+  }
+  if (abs < 12) return { label: 'Neutral - Downside Pressure', tone: 'sell' };
+  if (abs < 20) return { label: 'Downside Pressure', tone: 'sell' };
+  return { label: 'Downside-Dominant', tone: 'sell' };
+}
+
+function renderAuditResultCard(d) {
+  const env = d.market_environment || d.audit_result || null;
+  const buyEl = document.getElementById('auditBuyPct');
+  const sellEl = document.getElementById('auditSellPct');
+  const buyBar = document.getElementById('auditBuyBar');
+  const sellBar = document.getElementById('auditSellBar');
+  const biasEl = document.getElementById('auditMarketBias');
+  if (!buyEl || !env) return;
+
+  const buy = env.upside_pressure_pct;
+  const sell = env.downside_pressure_pct;
+  const pct = v => (v !== undefined && v !== null) ? String(v) + '%' : '—';
+
+  buyEl.textContent = pct(buy);
+  sellEl.textContent = pct(sell);
+
+  const buyW = (buy != null) ? Math.min(100, Math.max(0, buy)) : 0;
+  const sellW = (sell != null) ? Math.min(100, Math.max(0, sell)) : 0;
+  if (buyBar) buyBar.style.width = buyW + '%';
+  if (sellBar) sellBar.style.width = sellW + '%';
+
+  const bias = computeMarketBias(buy, sell);
+  if (biasEl) {
+    biasEl.textContent = bias.label;
+    biasEl.className = 'audit-bias-value bias-' + bias.tone;
+  }
+}
+
+// ── Helper: shorten audit sentence ───────────────────────
+function shortenAuditText(s) {
+  if (!s) return '';
+  return s.length > 70 ? s.slice(0, 68) + '…' : s;
+}
+
+// ── Helper: humanize raw governance/internal keys ─────────
+function humanizeGovernanceReason(raw) {
+  if (!raw || raw === 'ok') return null;
+  const map = {
+    brain_abstain:       'Participation not approved — governance blocked',
+    abstention:          'Adaptive abstention — participation refused',
+    runtime_disabled:    'Runtime disabled — fail closed',
+    runtime_untrusted:   'Runtime untrusted — no execution',
+    context_invalidate_trade: 'News/context invalidates trading',
+    market_not_tradable: 'Market audit: not tradable',
+    low_confidence:      'Runtime confidence below minimum threshold',
+    ranging_market:      'Market is ranging — no stable pressure edge',
+    high_volatility:     'Excessive volatility — risk/reward unfavorable',
+    weak_structure:      'Market structure too weak for participation',
+    conflicting_signals: 'Behavioral observations are conflicting',
+    news_risk:           'High-impact news event pending',
+    defensive_mode:      'System in defensive mode — reduced participation',
+    no_signal:           'No valid participation permission detected',
+    abstain:             'System abstaining — conditions not met',
+    trend_exhaustion:    'Trend pressure showing exhaustion behavior',
+    distribution_shift:  'Market regime change detected',
+    entropy_high:        'Market noise too high for reliable participation',
+    instability_high:    'Market instability elevated — standby',
+    vol_stress:          'Volatility stress too high',
+  };
+  return raw.split(';').map(r => {
+    const key = r.trim().toLowerCase().replace(/\s+/g,'_');
+    return map[key] || map[r.trim()] || r.trim().replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+  }).filter(Boolean).join(' · ');
+}
+
+// ── Market Decision Card helpers ─────────────────────────
+function formatHeroExecutionDecision(d) {
+  const primary = d.market_governance?.primary_state;
+  if (primary?.state) return primary.state;
+  return d.approved ? 'Execution permitted' : 'Execution not permitted';
+}
+
+function formatHeroGovernanceCause(d) {
+  const conclusion = d.market_governance?.governance_conclusion;
+  if (conclusion?.statement) return conclusion.statement;
+  return 'Unavailable';
+}
+
+function mapGovernanceDisplay(d) {
+  return formatHeroExecutionDecision(d);
+}
+
+function deriveMarketHeroStatus(d, approved) {
+  const primary = d?.market_governance?.primary_state;
+  if (!approved || primary?.tone === 'blocked') {
+    return { key: 'no-trade', label: 'NO TRADE', dot: '🔴' };
+  }
+  const env = d.market_environment || {};
+  const buy = env.upside_pressure_pct;
+  const sell = env.downside_pressure_pct;
+  const threshold = 8;
+  if (buy != null && sell != null) {
+    if (buy > sell + threshold) return { key: 'upside-pressure', label: 'UPSIDE PRESSURE', dot: '🟢' };
+    if (sell > buy + threshold) return { key: 'downside-pressure', label: 'DOWNSIDE PRESSURE', dot: '🔴' };
+  }
+  return { key: 'no-trade', label: 'NO TRADE', dot: '🟡' };
+}
+
+function formatMarketCondition(d) {
+  return formatHeroExecutionDecision(d);
+}
+
+function buildHeroRecommendedAction(d, hero) {
+  const panel = d.market_governance;
+  const evLine = panel?.governance_conclusion?.evidence_line;
+  if (!d.approved) {
+    if (evLine) return evLine;
+    const regime = (d.regime_detail?.type || d.regime || '').toUpperCase();
+    if (regime === 'RANGING') return 'Wait for behavioral confirmation';
+    if (regime === 'VOLATILE') return 'Wait for volatility to settle';
+    return 'Standby until governance clears';
+  }
+  const regime = d.regime_detail?.type || d.regime || '';
+  const map = {
+    RANGING: 'Wait for breakout confirmation',
+    VOLATILE: 'Reduce size until volatility settles',
+    TRENDING_UP: 'Monitor upside pressure stability',
+    TRENDING_DOWN: 'Monitor downside pressure stability',
+    BREAKOUT: 'Confirm close beyond key level',
+    TRANSITIONAL: 'Wait for regime confirmation',
+  };
+  if (hero.key === 'upside-pressure') return map[regime] || 'Monitor upside behavioral pressure';
+  if (hero.key === 'downside-pressure') return map[regime] || 'Monitor downside behavioral pressure';
+  return map[regime] || 'Standby';
+}
+
+function capitalizeContextSentence(s) {
+  if (!s) return '';
+  const t = String(s).trim().replace(/\s+/g, ' ');
+  if (!t) return '';
+  return t.charAt(0).toUpperCase() + t.slice(1).replace(/\.$/, '') + '.';
+}
+
+function formatContextRiskPhrase(warning) {
+  const w = String(warning || '').toLowerCase().trim();
+  if (!w || w.includes('no elevated structural')) return '';
+  const map = {
+    'volatility instability detected': 'Volatility instability is reducing participation reliability',
+    'unstable market participation conditions': 'Market participation remains inconsistent',
+    'breakout reliability degraded': 'Breakout attempts are repeatedly failing to hold confirmation',
+    'liquidity sweep behavior detected': 'Liquidity sweep behavior is disturbing structural stability',
+    'spread expansion risk elevated': 'Spread expansion is compressing execution reliability',
+    'structure weakening near resistance': 'Structure quality remains weak near key levels',
+    'reversal pressure increasing': 'Counter-pressure is building without stable structure',
+    'late entry risk elevated': 'Wrong-timing conditions elevate execution unreliability',
+    'wrong-timing participation risk elevated': 'Wrong-timing conditions elevate execution unreliability',
+    'market environment lacks directional clarity': 'Behavioral expansion lacks stable confirmation',
+    'participation conditions below runtime threshold': 'Participation quality remains below runtime threshold',
+  };
+  for (const [k, v] of Object.entries(map)) {
+    if (w.includes(k)) return v;
+  }
+  return w.replace(/_/g, ' ');
+}
+
+function buildMarketContextExplanation(d, approved) {
+  const sentences = [];
+  const env = d.market_environment || {};
+  const rm = d.runtime_metrics || {};
+  const audit = d.market_audit || d.audit_scores || {};
+  const edges = d.behavioral_edges || {};
+  const buy = env.upside_pressure_pct;
+  const sell = env.downside_pressure_pct;
+
+  if (buy != null && sell != null) {
+    const diff = buy - sell;
+    const abs = Math.abs(diff);
+    if (abs < 6) {
+      sentences.push('Behavioral pressure stays neutral, with neither side showing durable dominance.');
+    } else if (diff > 0) {
+      if (abs < 14) {
+        sentences.push('Upside pressure slightly dominates, but the balance remains too narrow for reliable execution.');
+      } else {
+        sentences.push('Upside pressure dominates the environment balance.');
+      }
+    } else {
+      if (abs < 14) {
+        sentences.push('Downside pressure slightly dominates, but the balance remains too narrow for reliable execution.');
+      } else {
+        sentences.push('Downside pressure dominates the environment balance.');
+      }
+    }
+  }
+
+  const structConf = audit.structure_confidence;
+  const instability = audit.instability_score;
+  const entropy = audit.entropy_score;
+  const shift = audit.distribution_shift;
+  const envQ = edges.environment_quality ?? rm.market_quality;
+  const tradable = audit.tradable;
+
+  if (tradable === false) {
+    sentences.push('Structural audit marks conditions as non-tradable under current volatility and coherence.');
+  } else if (structConf != null && structConf < 0.42) {
+    sentences.push('Structure quality remains weak, limiting participation reliability.');
+  } else if (entropy != null && entropy > 0.72) {
+    sentences.push('Participation quality remains inconsistent amid elevated market noise.');
+  } else if (shift != null && shift > 0.62) {
+    sentences.push('Behavioral expansion lacks stable confirmation after recent distribution shift.');
+  } else if (instability != null && instability > 0.62) {
+    sentences.push('Volatility instability is outpacing stable structural confirmation.');
+  } else if (envQ != null && envQ < 0.35) {
+    sentences.push('Behavioral edge quality is low, so participation remains inconsistent.');
+  } else if (!edges.dominant_edge && Array.isArray(edges.edges) && edges.edges.length) {
+    sentences.push('No dominant behavioral structure is confirming participation at this bar.');
+  }
+
+  const riskPhrase = formatContextRiskPhrase(env.risk_warning);
+  if (riskPhrase) sentences.push(capitalizeContextSentence(riskPhrase));
+
+  const gov = mapGovernanceDisplay(d);
+  const pressure = rm.abstention_pressure;
+  if (gov === 'BLOCKED' || gov === 'DISABLED') {
+    sentences.push('Governance has blocked participation under current runtime constraints.');
+  } else if (gov === 'ABSTAIN' || d.abstention?.abstain) {
+    sentences.push('Runtime abstention is active because participation quality is below threshold.');
+  } else if (gov === 'LIMITED' || !approved) {
+    if (pressure != null && pressure >= 0.45) {
+      sentences.push('Execution conditions remain limited by elevated abstention pressure.');
+    } else {
+      sentences.push('Governance permits only reduced participation under current conditions.');
+    }
+  } else if (pressure != null && pressure >= 0.55) {
+    sentences.push('Momentum exists, but execution conditions remain limited by participation pressure.');
+  }
+
+  const regime = (d.regime_detail?.type || d.regime || '').toUpperCase();
+  if (regime === 'RANGING' && sentences.length < 3) {
+    sentences.push('Range-bound structure explains repeated failure of breakout follow-through.');
+  } else if (regime === 'VOLATILE' && sentences.length < 3) {
+    sentences.push('Volatile expansion is disturbing stable participation coherence.');
+  } else if (regime === 'BREAKOUT' && sentences.length < 3 && structConf != null && structConf < 0.55) {
+    sentences.push('Breakout activity is present, but structure quality has not stabilized.');
+  }
+
+  const seen = new Set();
+  const unique = [];
+  for (const s of sentences) {
+    const line = capitalizeContextSentence(s);
+    const key = line.toLowerCase();
+    if (line && !seen.has(key)) {
+      seen.add(key);
+      unique.push(line);
+    }
+  }
+
+  if (!unique.length) {
+    return 'Runtime is monitoring participation conditions; no elevated structural narrative is active at this bar.';
+  }
+  return unique.slice(0, 3).join(' ');
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderDenialCompact(conclusion) {
+  const box = document.getElementById('govDenialCompact');
+  const primary = document.getElementById('govDenialPrimary');
+  const detail = document.getElementById('govDenialDetail');
+  if (!box || !primary) return;
+  if (!conclusion) {
+    box.classList.add('hidden');
+    primary.textContent = '';
+    if (detail) { detail.textContent = ''; detail.classList.add('hidden'); }
+    return;
+  }
+  const summary = conclusion.denial_summary;
+  if (!summary) {
+    box.classList.add('hidden');
+    primary.textContent = '';
+    if (detail) { detail.textContent = ''; detail.classList.add('hidden'); }
+    return;
+  }
+  primary.textContent = summary;
+  box.classList.remove('hidden');
+  const line = conclusion?.evidence_line || '';
+  if (detail) {
+    if (line && !/^Observed:/i.test(line)) {
+      detail.textContent = line;
+      detail.classList.remove('hidden');
+    } else {
+      detail.textContent = '';
+      detail.classList.add('hidden');
+    }
+  }
+}
+
+function renderConclusionEvidence(el, line) {
+  if (!el) return;
+  if (!line || !/^Observed:/i.test(String(line))) {
+    el.innerHTML = '';
+    el.classList.add('hidden');
+    return;
+  }
+  const m = String(line).match(/Observed:\s*([^\s·]+)\s*·\s*Required:\s*(.+)/i);
+  if (m) {
+    el.innerHTML =
+      '<div class="gov-evidence-box">' +
+        '<div class="gov-metric-col"><span class="ek">Observed</span><span class="ev obs">' + escapeHtml(m[1]) + '</span></div>' +
+        '<div class="gov-metric-col"><span class="ek">Required</span><span class="ev req">' + escapeHtml(m[2].trim()) + '</span></div>' +
+      '</div>';
+    el.classList.remove('hidden');
+    return;
+  }
+  el.innerHTML = '';
+  el.classList.add('hidden');
+}
+
+function updateEnvGovThreshold(d) {
+  const el = document.getElementById('envGovThreshold');
+  if (!el) return;
+  const panel = d?.market_governance || null;
+  if (!panel) {
+    el.textContent = 'Unavailable';
+    el.className = 'env-threshold-v tone-unavailable';
+    return;
+  }
+  const tel = panel.telemetry || {};
+  const primary = panel.primary_state || {};
+  const causes = panel.causes || [];
+  const execTone = primary.tone || (tel.approved ? 'valid' : 'blocked');
+  const satisfied = Array.isArray(causes) && causes.length === 0 && execTone === 'valid';
+  el.textContent = satisfied ? 'Survivable' : 'Not permitted';
+  el.className = 'env-threshold-v tone-' + (satisfied ? 'valid' : (execTone === 'blocked' ? 'blocked' : 'weak'));
+}
+
+function formatRiskDisplay(d) {
+  const raw = normalizeHeroRiskWarning(d);
+  if (!raw || raw === 'monitoring market conditions') return 'Participation conditions under review';
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
+}
+
+function formatExecBlockedLabel(d) {
+  const primary = d?.market_governance?.primary_state;
+  if (!primary?.state) return 'Execution blocked';
+  const s = primary.state;
+  if (s === 'Execution permitted') return 'Execution permitted';
+  if (s === 'Execution limited') return 'Execution limited';
+  if (s === 'Execution blocked') return 'Execution blocked';
+  return 'Execution blocked';
+}
+
+function deriveEvidenceCaption(panel) {
+  const stmt = (panel?.governance_conclusion?.statement || '').toLowerCase();
+  const line = panel?.governance_conclusion?.evidence_line || '';
+  if (!line) return null;
+  if (stmt.includes('participation quality')) {
+    return 'Observed quality insufficient for execution approval.';
+  }
+  if (stmt.includes('abstention')) return 'Abstention prevents execution approval.';
+  if (stmt.includes('entropy') || stmt.includes('noise')) {
+    return 'Market noise exceeds execution tolerance.';
+  }
+  if (stmt.includes('pressure')) return 'Participation pressure exceeds execution limit.';
+  return null;
+}
+
+function updateMcFooter(d) {
+  const meta = document.getElementById('mcFooterMeta');
+  if (!meta) return;
+  const sym = formatAssetLabel(state.symbol);
+  let ts = '';
+  if (d?.timestamp) {
+    ts = d.timestamp.replace('T', ' ').replace(/\.\d+Z?$/, '').slice(0, 19) + ' UTC+0';
+  }
+  meta.textContent = ts ? sym + ' • ' + ts : sym;
+}
+
+function cognitionRiskTone(key, value) {
+  if (value == null || value === '') return 'unknown';
+  if (key === 'contradiction_pressure' || key === 'semantic_confidence') {
+    const n = parseFloat(value);
+    if (isNaN(n)) return 'unknown';
+    if (key === 'semantic_confidence') {
+      if (n < 0.25) return 'critical';
+      if (n < 0.4) return 'elevated';
+      if (n < 0.55) return 'moderate';
+      return 'stable';
+    }
+    if (n >= 0.65) return 'critical';
+    if (n >= 0.45) return 'elevated';
+    if (n >= 0.25) return 'moderate';
+    return 'low';
+  }
+  const v = String(value).toLowerCase();
+  if (['critical', 'fragile', 'mutating', 'high'].includes(v)) return v;
+  if (['elevated', 'stressed', 'unstable', 'shifting'].includes(v)) return v;
+  if (['moderate', 'watch'].includes(v)) return v;
+  if (['low', 'stable', 'unknown'].includes(v)) return v;
+  return 'moderate';
+}
+
+function formatCognitionRiskValue(key, value) {
+  if (key === 'contradiction_pressure') {
+    const n = parseFloat(value);
+    return isNaN(n) ? '—' : n.toFixed(2);
+  }
+  if (key === 'semantic_confidence') {
+    const n = parseFloat(value);
+    return isNaN(n) ? '—' : n.toFixed(2);
+  }
+  if (!value) return '—';
+  return String(value).replace(/_/g, ' ');
+}
+
+function renderCognitionRisk(cognitionRisk) {
+  const grid = document.getElementById('cognitionRiskGrid');
+  const fallback = document.getElementById('cognitionRiskFallback');
+  if (!grid || !fallback) return;
+
+  const fields = [
+    ['contradiction_pressure', 'Contradiction pressure'],
+    ['instability_level', 'Instability'],
+    ['execution_fragility', 'Execution fragility'],
+    ['replay_live_distrust', 'Replay / live distrust'],
+    ['semantic_confidence', 'Semantic confidence'],
+    ['regime_instability', 'Regime instability'],
+  ];
+
+  if (!cognitionRisk) {
+    grid.classList.add('hidden');
+    grid.innerHTML = '';
+    fallback.textContent = 'Awaiting telemetry';
+    fallback.classList.remove('hidden');
+    return;
+  }
+
+  fallback.classList.add('hidden');
+  grid.classList.remove('hidden');
+  grid.innerHTML = fields.map(([key, label]) => {
+    const raw = cognitionRisk[key];
+    const tone = cognitionRiskTone(key, raw);
+    const display = formatCognitionRiskValue(key, raw);
+    return `<div class="cognition-risk-item">
+      <span class="cognition-risk-label">${escapeHtml(label)}</span>
+      <span class="cognition-risk-value tone-${escapeHtml(tone)}">${escapeHtml(display)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderGovernancePanel(panel) {
+  const primaryEl = document.getElementById('govPrimaryState');
+  const conclusionEl = document.getElementById('govConclusion');
+  const integrityList = document.getElementById('govIntegrityList');
+  const integrityFallback = document.getElementById('govIntegrityFallback');
+
+  if (!conclusionEl) return;
+
+  const warnIcon = document.getElementById('govWarnIcon');
+  const captionEl = document.getElementById('govEvidenceCaption');
+
+  if (!panel) {
+    if (primaryEl) {
+      primaryEl.textContent = 'Insufficient runtime evidence';
+      primaryEl.className = 'acp-exec-state tone-weak';
+    }
+    conclusionEl.textContent = 'Insufficient telemetry';
+    conclusionEl.className = 'gov-conclusion tone-weak';
+    if (warnIcon) warnIcon.className = 'gov-warn-icon tone-weak';
+    if (captionEl) { captionEl.textContent = ''; captionEl.classList.add('hidden'); }
+    renderDenialCompact(null);
+    renderConclusionEvidence(document.getElementById('govConclusionEvidence'), null);
+    if (integrityList) { integrityList.innerHTML = ''; integrityList.classList.add('hidden'); }
+    if (integrityFallback) {
+      integrityFallback.textContent = 'Validation unavailable';
+      integrityFallback.classList.remove('hidden');
+    }
+    renderCognitionRisk(null);
+    return;
+  }
+
+  const primary = panel.primary_state || {};
+  const tone = primary.tone || 'weak';
+  if (primaryEl) {
+    primaryEl.textContent = primary.state || '—';
+    primaryEl.className = 'acp-exec-state tone-' + escapeHtml(tone);
+  }
+
+  const conclusion = panel.governance_conclusion || {};
+  const cTone = conclusion.tone || 'weak';
+  conclusionEl.textContent = conclusion.statement || 'Governance state pending';
+  conclusionEl.className = 'gov-conclusion tone-' + escapeHtml(cTone);
+  if (warnIcon) warnIcon.className = 'gov-warn-icon tone-' + escapeHtml(cTone);
+  renderDenialCompact(conclusion);
+  const cap = conclusion.denial_summary ? null : deriveEvidenceCaption(panel);
+  if (captionEl) {
+    if (cap) {
+      captionEl.textContent = cap;
+      captionEl.classList.remove('hidden');
+    } else {
+      captionEl.textContent = '';
+      captionEl.classList.add('hidden');
+    }
+  }
+  renderConclusionEvidence(document.getElementById('govConclusionEvidence'), conclusion.evidence_line || null);
+
+  const integrity = panel.runtime_integrity || panel.governance_impact || {};
+  if (integrity.available && (integrity.items || []).length) {
+    if (integrityFallback) integrityFallback.classList.add('hidden');
+    if (integrityList) {
+      integrityList.classList.remove('hidden');
+      integrityList.innerHTML = integrity.items.map(item => {
+        const itemTone = item.tone || 'weak';
+        return `<li class="tone-${escapeHtml(itemTone)}">${escapeHtml(item.statement)}</li>`;
+      }).join('');
+    }
+  } else {
+    if (integrityList) { integrityList.innerHTML = ''; integrityList.classList.add('hidden'); }
+    if (integrityFallback) {
+      integrityFallback.textContent = integrity.fallback || 'Validation unavailable';
+      integrityFallback.classList.remove('hidden');
+    }
+  }
+  renderCognitionRisk(panel.cognition_risk || null);
+}
+
+function syncContextPanelHeader() {
+  const label = document.getElementById('chartSymbolLabel');
+  if (label) label.textContent = formatAssetLabel(state.symbol);
+}
+
+function renderAmroContextPanel(d, approved) {
+  syncContextPanelHeader();
+  updateMcFooter(d);
+  if (!d || d.error) {
+    renderGovernancePanel(null);
+    applyAuditHierarchy(null);
+    updateEnvGovThreshold(null);
+    return;
+  }
+  const panel = d.market_governance || null;
+  renderGovernancePanel(panel);
+  applyAuditHierarchy(panel);
+  updateEnvGovThreshold(d);
+}
+
+function applyAuditHierarchy(panel) {
+  const card = document.getElementById('auditPanelCard');
+  const note = document.getElementById('auditContextNote');
+  if (!card) return;
+  const hier = panel?.governance_hierarchy;
+  const overrides = hier?.execution_overrides_environment;
+  card.classList.toggle('audit-superseded', !!overrides);
+  if (note) {
+    note.classList.toggle('hidden', !overrides);
+  }
+}
+
+function normalizeHeroRiskWarning(d) {
+  const raw = d.market_environment?.risk_warning || '';
+  if (raw) return String(raw).toLowerCase().split(';')[0].trim();
+  const reason = d.final_execution_reason || d.governance?.reason || '';
+  if (!reason || reason === 'ok') return 'monitoring market conditions';
+  const clean = reason
+    .replace(/^abstention_override:/i, '')
+    .replace(/^governance_/i, '')
+    .replace(/^runtime_fail_closed:/i, '')
+    .replace(/_/g, ' ')
+    .split(';')[0]
+    .trim()
+    .toLowerCase();
+  const phraseMap = {
+    'no behavioral structure': 'unstable participation conditions',
+    'entropy spike': 'volatility instability elevated',
+    'ecology balance fail': 'ecology imbalance detected',
+    'poor edge environment': 'unstable participation conditions',
+    'distribution shift': 'breakout reliability degraded',
+  };
+  for (const [k, v] of Object.entries(phraseMap)) {
+    if (clean.includes(k)) return v;
+  }
+  return clean.slice(0, 72) || 'monitoring market conditions';
+}
+
+function renderMarketDecisionCard(d, approved) {
+  const banner = document.getElementById('permissionBanner');
+  if (!banner) return;
+  if (!d || d.error) {
+    banner.className = 'exec-strip market-decision-card loading';
+    return;
+  }
+  const hero = deriveMarketHeroStatus(d, approved);
+  banner.className = 'exec-strip market-decision-card mdc-' + hero.key;
+
+  const stateEl = document.getElementById('permState');
+  const blockedEl = document.getElementById('mdcExecBlocked');
+  const execEl = document.getElementById('mdcExecDecision');
+  const subEl = document.getElementById('mdcExecSub');
+  const riskEl = document.getElementById('mdcRiskWarning');
+  const riskDot = document.getElementById('mdcRiskDot');
+  const banIcon = document.getElementById('mdcBanIcon');
+
+  if (stateEl) stateEl.textContent = hero.label;
+  if (blockedEl) blockedEl.textContent = formatExecBlockedLabel(d);
+  if (execEl) execEl.textContent = formatHeroExecutionDecision(d);
+  if (subEl) subEl.textContent = formatHeroGovernanceCause(d);
+  if (riskEl) riskEl.textContent = formatRiskDisplay(d);
+  if (riskDot) riskDot.style.display = approved ? 'none' : '';
+  if (banIcon) banIcon.style.color = hero.key === 'upside-pressure' ? '#4ade80' : (approved ? '#4ade80' : '#f87171');
+}
+
+// ── Helper: build banner WHY + DO text ────────────────────
+function buildPermissionText(d, approved, isAbstain) {
+  const regime = d.regime_detail?.type || d.regime || '';
+  const regimeActionMap = {
+    RANGING:       'Wait for behavioral confirmation before participation',
+    VOLATILE:      'Reduce exposure — wait for volatility to settle',
+    TRENDING_UP:   'Wait for upside pressure to stabilize',
+    TRENDING_DOWN: 'Wait for downside pressure to stabilize',
+    BREAKOUT:      'Confirm stability beyond key level before participation',
+    TRANSITIONAL:  'Wait for regime confirmation — no clear pressure bias yet',
+  };
+  if (approved && !isAbstain) {
+    const riskMode = d.governance?.risk_mode || 'NORMAL';
+    const scale    = d.governance?.position_scale;
+    const reason   = `Governance permission active · ${riskMode} risk mode`;
+    let   action   = 'Participation permitted by governance · confirm execution constraints';
+    if (scale !== undefined && scale < 1) action += ` · reduce size to ${(scale*100).toFixed(0)}%`;
+    return { reason, action };
+  }
+  const rawReason  = d.governance?.reason;
+  const humanReason = humanizeGovernanceReason(rawReason) || 'No survivable participation condition at this time';
+  const action      = regimeActionMap[regime] || 'Monitor — wait for clearer participation conditions';
+  return { reason: humanReason, action };
+}
+
+// ── Helper: build blockers + system action lists ──────────
+function buildBlockers(d) {
+  const regime = d.regime_detail?.type || d.regime || '';
+  const raw    = d.governance?.reason || '';
+  const blockers = [];
+  if (raw && raw !== 'ok') {
+    raw.split(';').forEach(r => {
+      const h = humanizeGovernanceReason(r.trim());
+      if (h) blockers.push(h);
+    });
+  }
+  if (blockers.length === 0) blockers.push('No survivable participation condition detected');
+
+  const monitorMap = {
+    RANGING:       'Monitoring for behavioral expansion stability',
+    VOLATILE:      'Waiting for volatility normalization',
+    TRENDING_UP:   'Monitoring continuation pressure stability',
+    TRENDING_DOWN: 'Monitoring continuation pressure stability',
+    BREAKOUT:      'Awaiting breakout stability confirmation',
+    TRANSITIONAL:  'Awaiting regime confirmation',
+  };
+  const actions = [
+    monitorMap[regime] || 'Monitoring market conditions',
+    'Calculator locked — no position sizing until governance permits',
+  ];
+  return { blockers, actions };
+}
+
+// ── Session Widget ───────────────────────────────────────
+function updateSessionWidget() {
+  const now  = new Date();
+  const utcM = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const sessions = [
+    { name: 'Asia',     active: utcM >= 0   && utcM < 540  },   // 00:00–09:00 UTC
+    { name: 'London',   active: utcM >= 480  && utcM < 1020 },   // 08:00–17:00 UTC
+    { name: 'New York', active: utcM >= 780  && utcM < 1320 },   // 13:00–22:00 UTC
+  ];
+  const slotsEl = document.getElementById('sessionSlots');
+  if (slotsEl) slotsEl.innerHTML = sessions.map(s =>
+    `<span class="session-slot ${s.active ? 'session-active' : 'session-inactive'}">${s.name}</span>`
+  ).join('');
+  const active = sessions.filter(s => s.active).map(s => s.name);
+  const noteEl = document.getElementById('sessionNote');
+  if (noteEl) noteEl.textContent = active.length ? active.join(' + ') + ' open' : 'ตลาดปิด (off-peak)';
+}
+
+// ── Decision Timeline (state-change only, human text) ────
+let _prevTimelineState = null;
+
+function addTimelineEvent(d, conviction) {
+  const list = document.getElementById('timelineList');
+  if (!list) return;
+  const ph = list.querySelector('.timeline-item');
+  if (ph && ph.textContent.includes('รอข้อมูล')) ph.remove();
+
+  const approved = d.approved === true;
+  const regime   = d.regime_detail?.type || d.regime || '';
+  const rawReason = (d.governance?.reason || '').split(';')[0].trim();
+
+  // Build a stable state key — only log on actual state CHANGE
+  const stateKey = approved
+    ? `allowed:${d.governance?.verdict || 'permission'}:${conviction||'?'}`
+    : `standby:${regime}:${rawReason}`;
+
+  if (stateKey === _prevTimelineState) return; // same state — skip spam
+  _prevTimelineState = stateKey;
+
+  const now     = new Date();
+  const timeStr = now.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
+  const dotColor = approved
+    ? (conviction === 'STRONG' ? 'var(--green)' : conviction === 'MODERATE' ? '#34d399' : 'var(--orange)')
+    : 'var(--muted)';
+
+  let text;
+  if (approved) {
+    text = `Governance permission active · ${conviction || 'runtime trust active'} · ${d.price?.toLocaleString()||'—'}`;
+  } else {
+    const regimeDesc = {
+      RANGING:       'Market entered ranging state — no stable pressure edge',
+      VOLATILE:      'Volatility spike detected — system entering defensive mode',
+      TRENDING_UP:   'Uptrend pressure identified — awaiting stability confirmation',
+      TRENDING_DOWN: 'Downtrend pressure identified — awaiting stability confirmation',
+      BREAKOUT:      'Breakout pressure detected — awaiting stability confirmation',
+      TRANSITIONAL:  'Regime transition — monitoring pressure clarity',
+    };
+    text = regimeDesc[regime]
+      || (rawReason ? humanizeGovernanceReason(rawReason) : null)
+      || 'System standby — monitoring market conditions';
+  }
+
+  const li = document.createElement('li');
+  li.className = 'timeline-item';
+  li.innerHTML = `<span class="timeline-time">${timeStr}</span><span class="timeline-dot" style="background:${dotColor}"></span><span class="timeline-text">${text}</span>`;
+  list.insertBefore(li, list.firstChild);
+  while (list.children.length > 8) list.removeChild(list.lastChild);
+}
+
+// ── Pipeline Toggle ───────────────────────────────────────
+function togglePipeline() {
+  const body = document.getElementById('pipelineBody');
+  const btn  = document.getElementById('pipelineToggleBtn');
+  if (!body) return;
+  const isCollapsed = body.classList.contains('collapsed');
+  body.classList.toggle('collapsed', !isCollapsed);
+  body.classList.toggle('expanded',   isCollapsed);
+  body.style.maxHeight = isCollapsed ? '1200px' : '0';
+  if (btn) btn.textContent = isCollapsed ? '▾ Hide' : '▸ Show';
+}
+
+// ── Expandable Detail Toggle ──────────────────────────────
+function toggleDetail(bodyId, btn) {
+  const body = document.getElementById(bodyId);
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (btn) btn.textContent = btn.textContent.replace(open ? '▸' : '▾', open ? '▾' : '▸');
+}
+
+// ── AMRO Context Panel (no external chart) ───────────────
+const SYMBOL_LABEL_MAP = {
+  'GC=F': 'XAUUSD',
+  'EURUSD=X': 'EURUSD',
+  'GBPUSD=X': 'GBPUSD',
+  'USDJPY=X': 'USDJPY',
+  'USDCHF=X': 'USDCHF',
+  'AUDUSD=X': 'AUDUSD',
+  'USDCAD=X': 'USDCAD',
+  'NZDUSD=X': 'NZDUSD',
+  'BTC/USDT': 'BTCUSDT',
+};
+
+function formatAssetLabel(sym) {
+  return SYMBOL_LABEL_MAP[sym] || sym.replace('=X', '').replace('/USDT', '').replace('/', '');
+}
+
+// ── Position Calculator ─────────────────────────────────
+let calcDir = 'LONG'; // direction ที่ user เลือก
+
+function setCalcDir(dir) {
+  calcDir = dir;
+  document.getElementById('calcDirLong').className  = 'calc-dir-btn' + (dir === 'LONG'  ? ' active-long'  : '');
+  document.getElementById('calcDirShort').className = 'calc-dir-btn' + (dir === 'SHORT' ? ' active-short' : '');
+  calcPosition();
+}
+
+function calcPosition() {
+  const balance  = parseFloat(document.getElementById('calcBalance').value) || 1000;
+  const riskPct  = parseFloat(document.getElementById('calcRisk').value)    || 1;
+  const slPips   = parseFloat(document.getElementById('calcSL').value)      || 20;
+  const rr       = parseFloat(document.getElementById('calcRR').value)      || 2;
+  const price    = state.signalData?.price || 0;
+  const sym      = state.symbol || '';
+
+  // Entry display
+  if (price) {
+    const isCrypto = sym.includes('USDT') || sym.includes('BTC') || sym.includes('ETH');
+    const isJPY    = sym.includes('JPY');
+    const dec      = isCrypto ? 2 : isJPY ? 3 : 5;
+    document.getElementById('calcEntryDisplay').textContent = price.toLocaleString(undefined, {maximumFractionDigits: dec});
+  }
+
+  if (!balance || !slPips) return;
+
+  // Pip settings per instrument
+  const isCrypto = sym.includes('USDT') || sym.includes('BTC') || sym.includes('ETH');
+  const isGold   = sym === 'GC=F';
+  const isJPY    = sym.includes('JPY');
+  const isStock  = false;
+
+  let pipSize, pipValuePerLot, decimals;
+  if (isCrypto) {
+    pipSize = 1; pipValuePerLot = 1; decimals = 2;
+  } else if (isGold) {
+    pipSize = 0.01; pipValuePerLot = 10; decimals = 2;  // Gold: 1 pip=$0.01, $10/lot
+  } else if (isJPY) {
+    pipSize = 0.01; pipValuePerLot = 9.09; decimals = 3;
+  } else {
+    pipSize = 0.0001; pipValuePerLot = 10; decimals = 5;
+  }
+
+  const riskAmt    = balance * (riskPct / 100);
+  const slDistance = slPips * pipSize;
+  let   lotSize    = riskAmt / (slPips * pipValuePerLot);
+  lotSize = Math.max(0.01, Math.round(lotSize * 100) / 100);
+
+  // SL / TP prices (ถ้ามีราคา)
+  let slPriceStr = '—', tpPriceStr = '—';
+  if (price) {
+    const slPrice = calcDir === 'LONG' ? price - slDistance : price + slDistance;
+    const tpPrice = calcDir === 'LONG' ? price + slDistance * rr : price - slDistance * rr;
+    const arrow   = calcDir === 'LONG' ? '↓' : '↑';
+    const tpArrow = calcDir === 'LONG' ? '↑' : '↓';
+    slPriceStr = slPrice.toFixed(decimals) + '  ' + arrow;
+    tpPriceStr = tpPrice.toFixed(decimals) + '  ' + tpArrow;
+  }
+
+  const potentialProfit = riskAmt * rr;
+  const microLots = Math.round(lotSize * 100);
+  const miniLots  = (lotSize * 10).toFixed(1);
+
+  // Render
+  document.getElementById('calcLotSize').textContent    = lotSize.toFixed(2) + ' lot';
+  document.getElementById('calcRiskAmt').textContent    = '$' + riskAmt.toFixed(2);
+  document.getElementById('calcSLPrice').textContent    = slPriceStr;
+  document.getElementById('calcTPPrice').textContent    = tpPriceStr;
+  document.getElementById('calcProfit').textContent     = '+$' + potentialProfit.toFixed(2);
+  document.getElementById('calcLotBreakdown').textContent =
+    microLots + ' micro lots  |  ' + miniLots + ' mini lots  |  ' + lotSize.toFixed(2) + ' standard lot';
+
+  const bmBal = document.getElementById('bmBalance');
+  const bmRisk = document.getElementById('bmRiskPct');
+  const bmLot = document.getElementById('bmLot');
+  const bmSL = document.getElementById('bmSL');
+  const bmRR = document.getElementById('bmRR');
+  const bmPR = document.getElementById('bmPotentialR');
+  if (bmBal) bmBal.textContent = '$' + balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (bmRisk) bmRisk.textContent = riskPct.toFixed(2) + '%';
+  if (bmLot) bmLot.textContent = lotSize.toFixed(2) + ' lot';
+  if (bmSL) bmSL.textContent = slPips.toFixed(1) + ' pips';
+  if (bmRR) bmRR.textContent = '1 : ' + rr.toFixed(1);
+  if (bmPR) bmPR.textContent = '+' + potentialProfit.toFixed(1);
+}
+
+function dirColor(dir) {
+  if (dir === 'LONG')    return 'text-green';
+  if (dir === 'SHORT')   return 'text-red';
+  if (dir === 'ABSTAIN') return 'text-muted-val';
+  return 'text-orange';
+}
+
+// ── Stripe success redirect ──────────────────────────────
+function checkPaymentSuccess() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('session_id')) {
+    // Membership system disabled — ignore payment redirect.
+    showToast('✅ ระบบสมาชิกถูกปิดแล้ว — ใช้งานได้ฟรีหลัง Login', 'success');
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+// ── AI Pipeline ──────────────────────────────────────────
+async function runPipeline(symbol) {
+  const icon = document.getElementById('pipelineBtnIcon');
+  if (icon) icon.outerHTML = '<span id="pipelineBtnIcon" class="pipeline-spinner"></span>';
+
+  // Pipeline UI panel may be removed from cockpit; still allow backend run,
+  // but avoid any DOM assumptions in renderPipeline.
+
+  const symRaw = symbol || state.symbol || 'GC=F';
+  const sym = encodeURIComponent(symRaw);
+  const url = `/api/pipeline/run?symbol=${sym}&interval=1h&dry_run=true`;
+
+  try {
+    showLoading('🧠 AI กำลังวิเคราะห์ตลาด...');
+    const r = await apiFetch(url, { method: 'POST' });
+    hideLoading();
+    renderPipeline(r);
+    showToast('✅ Pipeline เสร็จสิ้น: ' + (r.approved ? 'PERMITTED' : 'BLOCKED'), r.approved ? 'success' : '');
+  } catch(e) {
+    hideLoading();
+    showToast('❌ Pipeline error: ' + (e.message || e), 'error');
+  } finally {
+    const icon2 = document.getElementById('pipelineBtnIcon');
+    if (icon2) icon2.outerHTML = '<span id="pipelineBtnIcon" class="hidden">▶</span>';
+  }
+}
+
+function renderPipeline(d) {
+  const idle = document.getElementById('pipelineIdle');
+  const res  = document.getElementById('pipelineResult');
+  if (!idle || !res) return;
+  idle.style.display = 'none';
+  res.style.display  = 'block';
+
+  const rm = d.runtime_metrics || {};
+  const pct = v => (v !== undefined && v !== null && typeof v === 'number')
+    ? (v <= 1 ? (v * 100).toFixed(0) + '%' : String(v)) : '—';
+  const set = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+
+  set('p1Sentiment', d.context_state?.market_context?.slice(0, 40) || '—');
+  set('p1Score', pct(d.context_state?.event_risk));
+  set('p1Risk', d.context_state?.invalidate_trade ? 'INVALIDATE' : 'OK');
+  set('p1News', d.context_state?.summary ? d.context_state.summary.slice(0, 60) + '...' : '—');
+  const p1Events = document.getElementById('p1Events');
+  if (p1Events) {
+    p1Events.innerHTML = (d.context_state?.warnings || [])
+      .map(e => `<div>• ${e}</div>`).join('') || '<div style="color:var(--muted)">—</div>';
+  }
+
+  set('p2Dir', d.market_runtime_state?.market_state || '—');
+  set('p2Conf', pct(d.market_runtime_state?.structure_confidence));
+  set('p2Entry', '—');
+  set('p2SL', '—');
+  set('p2TP', '—');
+  set('p2RR', '—');
+  set('p2Structure', d.market_runtime_state?.reason || '—');
+
+  set('p3Verdict', d.governance_decision?.verdict || '—');
+  set('p3Approved', d.approved ? 'YES' : 'NO');
+  set('p3Limit', d.position_limit !== undefined ? String(d.position_limit) : '—');
+  set('p3Reason', d.governance_reason || '—');
+  set('p3Risk', d.risk_mode || '—');
+
+  const aiVal = document.getElementById('aiConsensusVal');
+  const aiPct = document.getElementById('aiConsensusPct');
+  if (aiVal) aiVal.textContent = d.approved ? (rm.governance_state || 'ALLOW') : 'NO TRADE';
+  if (aiPct) aiPct.textContent = pct(rm.runtime_trust) + ' trust';
+
+  const approved = d.approved === true;
+  const badge = document.getElementById('pDecisionBadge');
+  if (badge) {
+    badge.textContent = approved ? '✅ PERMITTED' : '⛔ BLOCKED';
+    badge.className   = 'decision-badge ' + (approved ? 'approved' : 'abstain');
+  }
+  const metaEl = document.getElementById('pDecisionMeta');
+  if (metaEl) {
+    metaEl.innerHTML = approved
+      ? `Governance: <strong>${d.governance_decision?.verdict || '—'}</strong> | Trust: <strong>${pct(rm.runtime_trust)}</strong> | Limit: <strong>${d.position_limit ?? '—'}</strong>`
+      : `Blocked — <strong>${d.final_execution_reason || d.governance_reason || '—'}</strong>`;
+  }
+  const tsEl = document.getElementById('pTimestamp');
+  if (tsEl) tsEl.textContent = d.timestamp ? d.timestamp.replace('T',' ').slice(0,19) + ' UTC' : '';
+
+  const bp1 = document.getElementById('bp1Status');
+  const bp2 = document.getElementById('bp2Status');
+  const bp3 = document.getElementById('bp3Status');
+  if (bp1) bp1.textContent = document.getElementById('p1Sentiment')?.textContent || '—';
+  if (bp2) bp2.textContent = document.getElementById('p2Dir')?.textContent || '—';
+  if (bp3) bp3.textContent = document.getElementById('p3Approved')?.textContent || '—';
+}
+
+// ── Auto-refresh every 5 min ─────────────────────────────
+setInterval(() => {
+  if (state.user) loadSignal();
+}, 5 * 60 * 1000);
+
+// ── Global onclick handlers (inline HTML) ────────────────
+window.loginWithGoogle = loginWithGoogle;
+window.logout = logout;
+window.toggleAuth = toggleAuth;
+window.goHome = goHome;
+window.scrollToPricing = scrollToPricing;
+window.startCheckout = startCheckout;
+window.contactPremium = contactPremium;
+window.selectSymbol = selectSymbol;
+window.toggleSidebarDesktop = toggleSidebarDesktop;
+window.toggleSidebarMobile = toggleSidebarMobile;
+window.closeSidebarMobile = closeSidebarMobile;
+window.loadSignal = loadSignal;
+window.setCalcDir = setCalcDir;
+window.calcPosition = calcPosition;
+
+// ── Init ─────────────────────────────────────────────────
+checkPaymentSuccess();
+checkSession();
+if (document.getElementById('pageDashboard')?.classList.contains('active')) {
+  document.body.classList.add('shell-dashboard');
+  if (!state.user) loadSignal();
+}
+calcPosition();
+bindWatchlistPipelineTriggers();
+</script>
+</body>
+</html>

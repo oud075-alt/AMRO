@@ -1,0 +1,20 @@
+[
+  {
+    "pattern_id": "COMPRESSION_001",
+    "market_state": "pressure_building",
+    "visual_behavior": [
+      "narrow range",
+      "overlapping candles",
+      "volatility contraction"
+    ],
+    "emotion": "hesitation",
+    "probability_note": {
+      "expansion_event": 0.68,
+      "fake_expansion": 0.27
+    },
+    "failure_mode": [
+      "range persistence",
+      "liquidity trap"
+    ]
+  }
+]

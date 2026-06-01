@@ -1,0 +1,9 @@
+[
+  {
+    "replay_id": "REPLAY_001",
+    "current_behavior": "panic_reversal",
+    "historical_reference": "panic_sequence_cluster",
+    "similarity_score": 0.76,
+    "historical_outcome": "violent_mean_reversion"
+  }
+]

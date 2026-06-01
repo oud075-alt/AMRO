@@ -1,0 +1,20 @@
+[
+  {
+    "pattern_id": "LIQ_TRAP_001",
+    "market_state": "liquidity_sweep",
+    "visual_behavior": [
+      "stop hunt",
+      "fast reclaim",
+      "aggressive wick rejection"
+    ],
+    "emotion": "manipulation_risk",
+    "probability_note": {
+      "reversal_after_sweep": 0.64,
+      "continuation_after_trap": 0.21
+    },
+    "failure_mode": [
+      "true breakout",
+      "high momentum continuation"
+    ]
+  }
+]

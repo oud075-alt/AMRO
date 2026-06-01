@@ -1,0 +1,13 @@
+[
+  {
+    "confidence_id": "CONF_001",
+    "previous_confidence": 0.81,
+    "current_confidence": 0.52,
+    "drift_reason": [
+      "contradictory behavior",
+      "weak continuation",
+      "unstable liquidity"
+    ],
+    "risk_level": "elevated"
+  }
+]

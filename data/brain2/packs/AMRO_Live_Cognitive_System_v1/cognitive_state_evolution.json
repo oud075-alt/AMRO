@@ -1,0 +1,18 @@
+[
+  {
+    "evolution_id": "COG_001",
+    "state_progression": [
+      "stable",
+      "aggressive",
+      "unstable",
+      "exhaustion"
+    ],
+    "confidence_shift": [
+      0.72,
+      0.81,
+      0.48,
+      0.33
+    ],
+    "warning": "confidence collapse detected"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "pattern_id": "FAKE_BREAKOUT_001",
+    "market_state": "breakout_failure",
+    "visual_behavior": [
+      "failed continuation",
+      "rapid rejection",
+      "wick dominance"
+    ],
+    "emotion": "trap_behavior",
+    "probability_note": {
+      "reversal": 0.62,
+      "delayed_continuation": 0.18
+    },
+    "failure_mode": [
+      "late continuation",
+      "thin liquidity noise"
+    ]
+  }
+]

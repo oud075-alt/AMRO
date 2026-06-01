@@ -1,0 +1,64 @@
+[
+  {
+    "verification_id": "VERIFY_001",
+    "intuition_claim": "market panic increasing",
+    "required_validation": [
+      "volatility spike",
+      "spread expansion",
+      "liquidity weakness"
+    ],
+    "historical_recurrence": 0.67,
+    "execution_confirmation_required": true
+  },
+  {
+    "verification_id": "VERIFY_LUNA_CONTAGION_202205",
+    "intuition_claim": "recovery continuation during altcoin deleveraging",
+    "required_validation": [
+      "structure_confidence >= 0.50",
+      "synthetic_similarity < 0.55",
+      "drawdown_containment < 0.12"
+    ],
+    "historical_recurrence": 0.74,
+    "execution_confirmation_required": true,
+    "elevation_block_when_unmet": true,
+    "runtime_match": {
+      "synthetic_similarity_min": 0.55,
+      "structure_confidence_max": 0.45,
+      "distribution_shift_min": 0.85,
+      "drawdown_min": 0.12
+    },
+    "memory_support_cap": 0.30,
+    "historical_case": {
+      "event": "LUNA/UST contagion",
+      "date": "2022-05-09",
+      "symbol": "BTC/USDT",
+      "observed": "drawdown ~29%; synthetic ~0.89; structure ~0.41; partial memory match did not validate elevation",
+      "outcome": "semantic elevation would have failed reality check — memory support insufficient"
+    }
+  },
+  {
+    "verification_id": "VERIFY_ETH_SYNTH_202403",
+    "intuition_claim": "stable uptrend continuation with high chart similarity",
+    "required_validation": [
+      "structure_confidence >= 0.50",
+      "synthetic_similarity < 0.55",
+      "instability_score < 0.50"
+    ],
+    "historical_recurrence": 0.71,
+    "execution_confirmation_required": true,
+    "elevation_block_when_unmet": true,
+    "runtime_match": {
+      "synthetic_similarity_min": 0.55,
+      "structure_confidence_max": 0.45,
+      "instability_min": 0.50
+    },
+    "memory_support_cap": 0.32,
+    "historical_case": {
+      "event": "ETH synthetic breakdown Q1 2024",
+      "date": "2024-03-01",
+      "symbol": "ETH/USDT",
+      "observed": "synthetic ~0.92; structure ~0.18; instability ~0.58",
+      "outcome": "chart similarity without structural anchor — do not elevate confidence"
+    }
+  }
+]

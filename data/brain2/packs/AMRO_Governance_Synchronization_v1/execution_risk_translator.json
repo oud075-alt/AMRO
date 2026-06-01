@@ -1,0 +1,10 @@
+[
+  {
+    "execution_id": "EXEC_001",
+    "spread_behavior": "expanding",
+    "volatility_state": "chaotic",
+    "liquidity_quality": "thin",
+    "execution_risk": "critical",
+    "governance_note": "execution reliability degraded"
+  }
+]

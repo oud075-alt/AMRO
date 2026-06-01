@@ -1,0 +1,135 @@
+[
+  {
+    "relation_id": "UNC_DSSW_001",
+    "from_behavior": "noise_trader_sentiment_shift",
+    "to_behavior": "limits_to_arbitrage",
+    "weight": 0.77,
+    "regimes": ["*"],
+    "source": "De Long-Shleifer-Summers-Waldmann (1990)",
+    "measurable_implication": "excess volatility vs fundamental variance",
+    "operational_value": "do not treat mean reversion as guaranteed within holding horizon",
+    "execution_implication": "arbitrageurs may exit before correction — impact on exit liquidity",
+    "contradiction_awareness": "high continuation_p with elevated entropy",
+    "runtime_relevance": "entropy_score + synthetic_similarity joint elevation",
+    "failure_awareness": "mispricing can deepen — noise trader risk is systematic",
+    "uncertainty": 0.5,
+    "decay_half_life_bars": 96,
+    "replay_verification_required": true
+  },
+  {
+    "relation_id": "UNC_CONF_DECAY_001",
+    "from_behavior": "contradiction_accumulation",
+    "to_behavior": "semantic_confidence_collapse",
+    "weight": 0.8,
+    "regimes": ["*"],
+    "source": "adaptive systems / probabilistic fusion",
+    "measurable_implication": "contradiction_pressure >= 0.55 triggers governance downgrade",
+    "operational_value": "interpretation is advisory — uncertainty must propagate to Brain-3",
+    "execution_implication": "participation freeze when contra_p high regardless of edge",
+    "contradiction_awareness": "multiple runtime contras + pack template hits",
+    "runtime_relevance": "contradiction_pressure aggregation",
+    "failure_awareness": "cognitive collapse when too many unresolved contradictions",
+    "uncertainty": 0.35,
+    "decay_half_life_bars": 24,
+    "replay_verification_required": false
+  },
+  {
+    "relation_id": "UNC_ELEV_BLOCK_SYNTH_001",
+    "from_behavior": "synthetic_similarity",
+    "to_behavior": "semantic_confidence_collapse",
+    "weight": 0.82,
+    "regimes": ["*"],
+    "source": "LUNA/UST contagion May 2022; ETH synthetic breakdown Q1 2024",
+    "measurable_implication": "synthetic_similarity >= 0.55 with structure_confidence < 0.45 — memory support insufficient for elevation",
+    "operational_value": "do not elevate interpretation confidence on chart-similarity without structural anchor",
+    "execution_implication": "participation freeze — semantic-only pattern match is not validation",
+    "contradiction_awareness": "high synthetic + low structure implies narrative ahead of evidence",
+    "runtime_relevance": "synthetic_similarity + structure_confidence joint gate",
+    "runtime_match": {
+      "synthetic_similarity_min": 0.55,
+      "structure_confidence_max": 0.45
+    },
+    "elevation_block": true,
+    "memory_support_cap": 0.32,
+    "historical_evidence": [
+      {
+        "event_id": "luna_ust_contagion_2022-05-09",
+        "symbol": "BTC/USDT",
+        "as_of": "2022-05-09",
+        "observed": "drawdown ~29%; synthetic_similarity ~0.89; structure_confidence ~0.41; continuation narratives failed under contagion",
+        "lesson": "partial memory pattern match was not sufficient for confidence elevation"
+      },
+      {
+        "event_id": "eth_synthetic_breakdown_2024-03-01",
+        "symbol": "ETH/USDT",
+        "as_of": "2024-03-01",
+        "observed": "synthetic_similarity ~0.92; structure_confidence ~0.18; high contradiction context",
+        "lesson": "reality verification failed — similarity without structural anchor"
+      }
+    ],
+    "failure_awareness": "elevation during synthetic-noise regimes reproduced negative outcomes in both historical cases",
+    "uncertainty": 0.58,
+    "decay_half_life_bars": 120,
+    "replay_verification_required": true
+  },
+  {
+    "relation_id": "UNC_CONTAGION_DRAW_001",
+    "from_behavior": "distribution_shift",
+    "to_behavior": "semantic_confidence_collapse",
+    "weight": 0.79,
+    "regimes": ["*"],
+    "source": "BTC drawdown during LUNA/UST deleveraging May 2022",
+    "measurable_implication": "distribution_shift >= 0.85 with drawdown >= 0.12 — block memory-based elevation",
+    "operational_value": "contagion regimes invalidate partial semantic support",
+    "execution_implication": "fail-closed on memory elevation until structure rebuilds",
+    "runtime_relevance": "distribution_shift + drawdown stress",
+    "runtime_match": {
+      "distribution_shift_min": 0.85,
+      "drawdown_min": 0.12
+    },
+    "elevation_block": true,
+    "memory_support_cap": 0.30,
+    "historical_evidence": [
+      {
+        "event_id": "luna_ust_contagion_2022-05-09",
+        "symbol": "BTC/USDT",
+        "as_of": "2022-05-09",
+        "observed": "distribution_shift ~0.98; drawdown ~29%; global memory support appeared adequate but elevation failed out-of-sample",
+        "lesson": "uncertainty propagation must cap support below elevation threshold during contagion drawdowns"
+      }
+    ],
+    "failure_awareness": "confidence elevation during May 2022 contagion correlated with implementation shortfall",
+    "uncertainty": 0.62,
+    "decay_half_life_bars": 96,
+    "replay_verification_required": true
+  },
+  {
+    "relation_id": "UNC_EXTREME_SYNTH_001",
+    "from_behavior": "synthetic_similarity",
+    "to_behavior": "semantic_confidence_collapse",
+    "weight": 0.84,
+    "regimes": ["*"],
+    "source": "Forex/Yahoo daily — extreme entropy-synthetic readings without structural anchor",
+    "measurable_implication": "synthetic_similarity >= 0.85 with structure_confidence < 0.55 blocks elevation",
+    "operational_value": "forex daily noise must not pass as memory-validated confidence",
+    "execution_implication": "participation freeze on synthetic-only pattern match",
+    "runtime_match": {
+      "synthetic_similarity_min": 0.85,
+      "structure_confidence_max": 0.55
+    },
+    "elevation_block": true,
+    "memory_support_cap": 0.33,
+    "historical_evidence": [
+      {
+        "event_id": "eur_calm_synthetic_noise_2023",
+        "symbol": "EURUSD=X",
+        "as_of": "2023-06-01",
+        "observed": "synthetic ~0.95 with moderate structure — elevation would be misleading",
+        "lesson": "cap memory support under extreme synthetic similarity"
+      }
+    ],
+    "uncertainty": 0.6,
+    "decay_half_life_bars": 96,
+    "replay_verification_required": true
+  }
+]

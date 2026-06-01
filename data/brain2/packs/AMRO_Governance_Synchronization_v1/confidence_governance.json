@@ -1,0 +1,12 @@
+[
+  {
+    "confidence_id": "CONF_GOV_001",
+    "confidence_state": "decaying",
+    "contradiction_level": "high",
+    "recommended_action": [
+      "request confirmation",
+      "reduce trust",
+      "increase caution"
+    ]
+  }
+]

@@ -1,0 +1,23 @@
+[
+  {
+    "event_id": "SPD_001",
+    "candle_speed": "extreme_fast",
+    "behavior": [
+      "impulsive expansion",
+      "rapid displacement"
+    ],
+    "emotion_mapping": "panic_or_aggression",
+    "risk_level": "high",
+    "outcome_note": "elevated instability probability"
+  },
+  {
+    "event_id": "SPD_002",
+    "candle_speed": "slow_decay",
+    "behavior": [
+      "weak continuation",
+      "momentum exhaustion"
+    ],
+    "emotion_mapping": "hesitation_or_exhaustion",
+    "risk_level": "medium"
+  }
+]

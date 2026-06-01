@@ -1,0 +1,321 @@
+[
+  {
+    "id": "btc_covid_crash",
+    "symbol": "BTC/USDT",
+    "as_of": "2020-03-12",
+    "interval": "1h",
+    "lookback_days": 45,
+    "note": "Black Thursday — liquidity collapse, extreme vol"
+  },
+  {
+    "id": "btc_luna_contagion",
+    "symbol": "BTC/USDT",
+    "as_of": "2022-05-09",
+    "interval": "1h",
+    "lookback_days": 45,
+    "note": "LUNA/UST contagion — stress + synthetic similarity"
+  },
+  {
+    "id": "btc_ftx_collapse",
+    "symbol": "BTC/USDT",
+    "as_of": "2022-11-09",
+    "interval": "1h",
+    "lookback_days": 45,
+    "note": "FTX collapse week — execution + failure context"
+  },
+  {
+    "id": "eth_merge_volatility",
+    "symbol": "ETH/USDT",
+    "as_of": "2022-09-15",
+    "interval": "1h",
+    "lookback_days": 45,
+    "note": "Merge event — elevated instability"
+  },
+  {
+    "id": "btc_calm_summer_2023",
+    "symbol": "BTC/USDT",
+    "as_of": "2023-08-01",
+    "interval": "1h",
+    "lookback_days": 45,
+    "note": "Low-vol ranging — should not over-abstain"
+  },
+  {
+    "id": "eth_calm_q1_2024",
+    "symbol": "ETH/USDT",
+    "as_of": "2024-03-01",
+    "interval": "1h",
+    "lookback_days": 45,
+    "note": "Stable uptrend — memory support partial OK"
+  },
+  {
+    "id": "sol_meme_volatility",
+    "symbol": "SOL/USDT",
+    "as_of": "2024-01-23",
+    "interval": "1h",
+    "lookback_days": 45,
+    "note": "Meme-driven vol spike — contradiction context"
+  },
+  {
+    "id": "btc_etf_rally",
+    "symbol": "BTC/USDT",
+    "as_of": "2024-01-11",
+    "interval": "1h",
+    "lookback_days": 45,
+    "note": "ETF approval rally — continuation vs trap tension"
+  },
+  {
+    "id": "xau_covid_liquidity_2020",
+    "symbol": "GC=F",
+    "as_of": "2020-03-12",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "note": "XAUUSD Black Thursday — liquidity shock then safe-haven bid"
+  },
+  {
+    "id": "xau_ukraine_spike_2022",
+    "symbol": "GC=F",
+    "as_of": "2022-03-08",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "note": "XAUUSD geopolitical spike — instability + distribution shift"
+  },
+  {
+    "id": "xau_fed_pressure_2022",
+    "symbol": "GC=F",
+    "as_of": "2022-09-23",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "note": "XAUUSD rate-hike pressure — drawdown + synthetic noise"
+  },
+  {
+    "id": "xau_calm_2023",
+    "symbol": "GC=F",
+    "as_of": "2023-08-01",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "note": "XAUUSD ranging — should not over-block calm gold"
+  },
+  {
+    "id": "xau_recent_vol_2025",
+    "symbol": "GC=F",
+    "as_of": "2025-03-01",
+    "interval": "1h",
+    "lookback_days": 45,
+    "source": "yahoo",
+    "note": "XAUUSD recent hourly — execution + microstructure path"
+  },
+  {
+    "id": "eur_covid_2020",
+    "symbol": "EURUSD=X",
+    "as_of": "2020-03-12",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "EURUSD COVID shock — fear/panic context"
+  },
+  {
+    "id": "eur_calm_2023",
+    "symbol": "EURUSD=X",
+    "as_of": "2023-06-01",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "EURUSD low-vol range"
+  },
+  {
+    "id": "eur_recent_2025",
+    "symbol": "EURUSD=X",
+    "as_of": "2025-03-01",
+    "interval": "1h",
+    "lookback_days": 45,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "EURUSD recent hourly"
+  },
+  {
+    "id": "gbp_mini_budget_2022",
+    "symbol": "GBPUSD=X",
+    "as_of": "2022-09-26",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "GBP mini-budget crisis — panic/aggression"
+  },
+  {
+    "id": "gbp_calm_2024",
+    "symbol": "GBPUSD=X",
+    "as_of": "2024-04-01",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "GBP post-crisis stabilization"
+  },
+  {
+    "id": "gbp_recent_2025",
+    "symbol": "GBPUSD=X",
+    "as_of": "2025-03-01",
+    "interval": "1h",
+    "lookback_days": 45,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "GBPUSD recent hourly"
+  },
+  {
+    "id": "jpy_carry_unwind_2024",
+    "symbol": "USDJPY=X",
+    "as_of": "2024-08-05",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "USDJPY carry unwind — volatility spike"
+  },
+  {
+    "id": "jpy_calm_2023",
+    "symbol": "USDJPY=X",
+    "as_of": "2023-05-01",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "USDJPY low-vol period"
+  },
+  {
+    "id": "jpy_recent_2025",
+    "symbol": "USDJPY=X",
+    "as_of": "2025-03-01",
+    "interval": "1h",
+    "lookback_days": 45,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "USDJPY recent hourly"
+  },
+  {
+    "id": "chf_snb_shock_2015",
+    "symbol": "USDCHF=X",
+    "as_of": "2015-01-15",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "SNB cap removal — extreme panic"
+  },
+  {
+    "id": "chf_calm_2023",
+    "symbol": "USDCHF=X",
+    "as_of": "2023-05-01",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "USDCHF calm range"
+  },
+  {
+    "id": "chf_recent_2025",
+    "symbol": "USDCHF=X",
+    "as_of": "2025-03-01",
+    "interval": "1h",
+    "lookback_days": 45,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "USDCHF recent hourly"
+  },
+  {
+    "id": "aud_covid_2020",
+    "symbol": "AUDUSD=X",
+    "as_of": "2020-03-20",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "AUDUSD risk-off crash"
+  },
+  {
+    "id": "aud_calm_2023",
+    "symbol": "AUDUSD=X",
+    "as_of": "2023-08-01",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "AUDUSD ranging"
+  },
+  {
+    "id": "aud_recent_2025",
+    "symbol": "AUDUSD=X",
+    "as_of": "2025-03-01",
+    "interval": "1h",
+    "lookback_days": 45,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "AUDUSD recent hourly"
+  },
+  {
+    "id": "cad_oil_vol_2022",
+    "symbol": "USDCAD=X",
+    "as_of": "2022-10-14",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "USDCAD oil-linked volatility"
+  },
+  {
+    "id": "cad_calm_2023",
+    "symbol": "USDCAD=X",
+    "as_of": "2023-09-01",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "USDCAD calm"
+  },
+  {
+    "id": "cad_recent_2025",
+    "symbol": "USDCAD=X",
+    "as_of": "2025-03-01",
+    "interval": "1h",
+    "lookback_days": 45,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "USDCAD recent hourly"
+  },
+  {
+    "id": "nzd_rbnz_vol_2022",
+    "symbol": "NZDUSD=X",
+    "as_of": "2022-10-12",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "NZDUSD policy volatility"
+  },
+  {
+    "id": "nzd_calm_2023",
+    "symbol": "NZDUSD=X",
+    "as_of": "2023-07-12",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "NZDUSD calm"
+  },
+  {
+    "id": "nzd_recent_2025",
+    "symbol": "NZDUSD=X",
+    "as_of": "2025-03-01",
+    "interval": "1h",
+    "lookback_days": 45,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "NZDUSD recent hourly"
+  }
+]

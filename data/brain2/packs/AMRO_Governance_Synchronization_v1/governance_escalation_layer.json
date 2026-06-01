@@ -1,0 +1,16 @@
+[
+  {
+    "escalation_id": "ESC_001",
+    "warning_level": "critical",
+    "market_condition": [
+      "panic instability",
+      "execution unreliability",
+      "liquidity collapse"
+    ],
+    "governance_response": [
+      "freeze mode",
+      "risk reduction",
+      "exposure shutdown"
+    ]
+  }
+]

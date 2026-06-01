@@ -1,0 +1,53 @@
+[
+  {
+    "relation_id": "EP_PEROLD_001",
+    "from_behavior": "urgency_dilemma",
+    "to_behavior": "implementation_shortfall",
+    "weight": 0.88,
+    "regimes": ["*"],
+    "source": "Perold (1988) Implementation Shortfall",
+    "measurable_implication": "IS = explicit + delay + impact + missed opportunity",
+    "operational_value": "slow fills in volatile bars increase delay cost component",
+    "execution_implication": "fast aggression raises market impact; patience raises drift risk",
+    "contradiction_awareness": "high edge_strength urges urgency while guards block execution",
+    "runtime_relevance": "slippage_spike + latency_instability compound IS",
+    "failure_awareness": "VWAP average hides IS tail risk — consistency matters for survival",
+    "uncertainty": 0.28,
+    "decay_half_life_bars": 36,
+    "replay_verification_required": true
+  },
+  {
+    "relation_id": "EP_DELAY_001",
+    "from_behavior": "latency_instability",
+    "to_behavior": "delay_cost_escalation",
+    "weight": 0.76,
+    "regimes": ["VOLATILE", "TRANSITIONAL"],
+    "source": "Hasbrouck transaction cost decomposition",
+    "measurable_implication": "benchmark drift between decision and fill prices",
+    "operational_value": "execution_health < 0.5 fail-closed",
+    "execution_implication": "orders arrive at stale prices — adverse drift",
+    "contradiction_awareness": "governance approved but latency guard blocked",
+    "runtime_relevance": "check_latency(execution_health)",
+    "failure_awareness": "internal routing delay in volatile markets amplifies IS",
+    "uncertainty": 0.3,
+    "decay_half_life_bars": 12,
+    "replay_verification_required": true
+  },
+  {
+    "relation_id": "EP_IMPACT_001",
+    "from_behavior": "size_pressure",
+    "to_behavior": "market_impact_nonlinearity",
+    "weight": 0.83,
+    "regimes": ["*"],
+    "source": "Almgren-Chriss / Kyle-Obizhaeva invariance literature",
+    "measurable_implication": "impact scales super-linearly when participation rate exceeds resiliency",
+    "operational_value": "cap position_limit when spread + slippage guards fail together",
+    "execution_implication": "large orders move price against themselves",
+    "contradiction_awareness": "allocation permits size while microstructure rejects fill quality",
+    "runtime_relevance": "dual guard fail pattern",
+    "failure_awareness": "catastrophic loss often follows forced completion in thin liquidity",
+    "uncertainty": 0.38,
+    "decay_half_life_bars": 48,
+    "replay_verification_required": true
+  }
+]

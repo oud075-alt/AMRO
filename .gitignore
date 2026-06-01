@@ -1,0 +1,37 @@
+# Secrets / local environment
+.env
+.env.*
+!.env.example
+!.env.production.example
+*key*.txt
+*Key*.txt
+*secret*.txt
+*Secret*.txt
+credentials*.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Runtime/generated data
+runtime_logs/
+data/brain2/state/
+data/brain2/replay/
+data/brain2/training/results/
+pb_data/
+pocketbase.exe
+
+# Frontend/local tooling
+node_modules/
+*.log
+.tmp_*
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/

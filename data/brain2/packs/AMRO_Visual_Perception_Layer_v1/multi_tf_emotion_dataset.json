@@ -1,0 +1,11 @@
+[
+  {
+    "snapshot_id": "MTF_001",
+    "M15_emotion": "greed",
+    "H1_emotion": "hesitation",
+    "H4_emotion": "exhaustion",
+    "D1_emotion": "distribution",
+    "conflict_state": "high",
+    "risk_note": "multi-timeframe disagreement"
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "context_id": "GOV_CTX_001",
+    "market_state": "unstable_continuation",
+    "fakeout_risk": "elevated",
+    "liquidity_state": "fragile",
+    "confidence_level": 0.41,
+    "governance_implication": "reduce exposure"
+  }
+]

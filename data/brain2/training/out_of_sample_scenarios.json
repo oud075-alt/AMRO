@@ -1,0 +1,178 @@
+[
+  {
+    "id": "heldout_btc_china_mining_selloff_2021",
+    "symbol": "BTC/USDT",
+    "as_of": "2021-05-19",
+    "interval": "1h",
+    "lookback_days": 45,
+    "watchlist": true,
+    "note": "Held-out survival-risk: crypto liquidation and forced de-risking period"
+  },
+  {
+    "id": "heldout_btc_deleveraging_2021",
+    "symbol": "BTC/USDT",
+    "as_of": "2021-12-04",
+    "interval": "1h",
+    "lookback_days": 45,
+    "watchlist": true,
+    "note": "Held-out survival-risk: weekend deleveraging move"
+  },
+  {
+    "id": "heldout_btc_banking_stress_rally_2023",
+    "symbol": "BTC/USDT",
+    "as_of": "2023-03-13",
+    "interval": "1h",
+    "lookback_days": 45,
+    "watchlist": true,
+    "note": "Held-out survival-risk: banking stress repricing"
+  },
+  {
+    "id": "heldout_btc_post_etf_distribution_2024",
+    "symbol": "BTC/USDT",
+    "as_of": "2024-03-19",
+    "interval": "1h",
+    "lookback_days": 45,
+    "watchlist": true,
+    "note": "Held-out survival-risk: post-rally distribution and volatility"
+  },
+  {
+    "id": "heldout_xau_banking_stress_2023",
+    "symbol": "GC=F",
+    "as_of": "2023-03-13",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: safe-haven repricing during banking stress"
+  },
+  {
+    "id": "heldout_xau_breakout_vol_2024",
+    "symbol": "GC=F",
+    "as_of": "2024-04-12",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: gold breakout volatility"
+  },
+  {
+    "id": "heldout_eur_parity_stress_2022",
+    "symbol": "EURUSD=X",
+    "as_of": "2022-07-14",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: EURUSD parity stress"
+  },
+  {
+    "id": "heldout_eur_ecb_repricing_2024",
+    "symbol": "EURUSD=X",
+    "as_of": "2024-04-16",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: USD strength repricing"
+  },
+  {
+    "id": "heldout_gbp_liability_stress_followthrough_2022",
+    "symbol": "GBPUSD=X",
+    "as_of": "2022-10-12",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: GBP post-crisis follow-through"
+  },
+  {
+    "id": "heldout_gbp_banking_stress_2023",
+    "symbol": "GBPUSD=X",
+    "as_of": "2023-03-13",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: GBP banking stress period"
+  },
+  {
+    "id": "heldout_jpy_intervention_2022",
+    "symbol": "USDJPY=X",
+    "as_of": "2022-10-21",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: JPY intervention shock"
+  },
+  {
+    "id": "heldout_jpy_policy_shift_2023",
+    "symbol": "USDJPY=X",
+    "as_of": "2023-12-07",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: JPY policy repricing"
+  },
+  {
+    "id": "heldout_chf_usd_shock_2022",
+    "symbol": "USDCHF=X",
+    "as_of": "2022-09-22",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: SNB/Fed repricing"
+  },
+  {
+    "id": "heldout_chf_banking_stress_2023",
+    "symbol": "USDCHF=X",
+    "as_of": "2023-03-15",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: CHF banking stress"
+  },
+  {
+    "id": "heldout_aud_omicron_riskoff_2021",
+    "symbol": "AUDUSD=X",
+    "as_of": "2021-11-26",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: AUD risk-off shock"
+  },
+  {
+    "id": "heldout_aud_china_repricing_2023",
+    "symbol": "AUDUSD=X",
+    "as_of": "2023-08-17",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: AUD macro repricing"
+  },
+  {
+    "id": "heldout_cad_oil_repricing_2023",
+    "symbol": "USDCAD=X",
+    "as_of": "2023-03-15",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: CAD banking/oil stress"
+  },
+  {
+    "id": "heldout_nzd_policy_repricing_2024",
+    "symbol": "NZDUSD=X",
+    "as_of": "2024-02-28",
+    "interval": "1d",
+    "lookback_days": 90,
+    "source": "yahoo",
+    "watchlist": true,
+    "note": "Held-out survival-risk: NZD policy repricing"
+  }
+]

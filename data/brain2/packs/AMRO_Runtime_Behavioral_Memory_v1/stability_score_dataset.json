@@ -1,0 +1,11 @@
+[
+  {
+    "snapshot_id": "STABILITY_001",
+    "continuation_quality": "weakening",
+    "volatility_state": "unstable",
+    "liquidity_state": "fragile",
+    "execution_reliability": "medium_low",
+    "stability_score": 0.38,
+    "risk_state": "elevated_instability"
+  }
+]

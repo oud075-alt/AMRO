@@ -1,0 +1,20 @@
+[
+  {
+    "pattern_id": "EXHAUSTION_001",
+    "market_state": "trend_weakening",
+    "visual_behavior": [
+      "weak continuation",
+      "slowing impulse",
+      "failed extension"
+    ],
+    "emotion": "exhaustion",
+    "probability_note": {
+      "reversal": 0.54,
+      "sideways_transition": 0.29
+    },
+    "failure_mode": [
+      "news continuation",
+      "forced squeeze"
+    ]
+  }
+]

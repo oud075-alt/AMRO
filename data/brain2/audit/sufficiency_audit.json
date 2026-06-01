@@ -1,0 +1,35 @@
+{
+  "audit_version": "brain2_sufficiency_v1",
+  "last_updated": "2026-05-31",
+  "verdict": "insufficient_for_full_behavioral_semantics",
+  "overall_coverage": 0.789,
+  "note": "Quantity expanded (48 pack files) but cognition quality gaps remain — see domain_gaps",
+  "critical_blind_spots": [
+    "OHLC range proxies substitute for order-book microstructure (Kyle lambda, Amihud not computed live)",
+    "Sequence memory is in-process only — lost on restart; no persistent behavioral progression",
+    "Replay chain stores signature only — no spread/fill state in snapshot for divergence magnitude",
+    "Pack emotion_mapping metaphors must not be treated as measurable ground truth"
+  ],
+  "domains_still_weak": [
+    "contradiction_accumulation",
+    "execution_degradation",
+    "liquidity_collapse",
+    "replay_live_divergence",
+    "execution_pathology"
+  ],
+  "ingest_completed": [
+    "AMRO_Deep_Evidence_v1/microstructure_behavior_relations.json",
+    "AMRO_Deep_Evidence_v1/execution_pathology_relations.json",
+    "AMRO_Deep_Evidence_v1/deep_contradiction_templates.json",
+    "AMRO_Deep_Evidence_v1/liquidity_collapse_sequences.json",
+    "AMRO_Deep_Evidence_v1/negative_outcome_memory.json",
+    "AMRO_Deep_Evidence_v1/uncertainty_propagation_relations.json"
+  ],
+  "sources": [
+    "Kyle (1985)",
+    "Amihud (2002)",
+    "Glosten-Milgrom (1985)",
+    "Perold (1988) Implementation Shortfall",
+    "De Long-Shleifer-Summers-Waldmann (1990)"
+  ]
+}

@@ -1,0 +1,13 @@
+[
+  {
+    "instability_id": "INST_001",
+    "observable_behavior": [
+      "chaotic_volatility",
+      "erratic_wick_behavior",
+      "failed_continuation"
+    ],
+    "emotional_mapping": "panic_instability",
+    "market_stability_score": 0.29,
+    "risk_level": "critical"
+  }
+]

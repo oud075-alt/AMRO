@@ -1,0 +1,13 @@
+[
+  {
+    "narrative_id": "NARR_001",
+    "market_story": [
+      "confidence_building",
+      "crowd_chasing",
+      "continuation_weakening",
+      "panic_transition"
+    ],
+    "behavioral_interpretation": "unstable bullish continuation",
+    "instability_probability": 0.66
+  }
+]

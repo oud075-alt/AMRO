@@ -1,0 +1,12 @@
+[
+  {
+    "sequence_id": "EMO_001",
+    "emotion_transition": [
+      "hesitation",
+      "greed",
+      "panic"
+    ],
+    "acceleration_type": "rapid_transition",
+    "risk_note": "emotional instability increasing"
+  }
+]

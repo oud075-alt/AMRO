@@ -1,0 +1,10 @@
+[
+  {
+    "intuition_id": "INTUITION_001",
+    "behavior_detected": "panic_reversal",
+    "historical_accuracy": 0.63,
+    "recent_accuracy": 0.58,
+    "confidence_adjustment": "decrease",
+    "learning_note": "avoid overconfidence"
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "pattern_id": "CROWD_001",
+    "behavior": [
+      "breakout chase",
+      "late participation",
+      "momentum crowding"
+    ],
+    "emotional_mapping": "greed_pressure",
+    "failure_mode": [
+      "trap breakout",
+      "exhaustion collapse"
+    ],
+    "probability_note": {
+      "continuation": 0.44,
+      "exhaustion": 0.49
+    }
+  }
+]

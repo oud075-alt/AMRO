@@ -1,0 +1,17 @@
+[
+  {
+    "compression_id": "COMPRESS_001",
+    "raw_context": [
+      "spread widening",
+      "failed continuation",
+      "liquidity weakness",
+      "panic volatility"
+    ],
+    "compressed_output": {
+      "state": "unstable",
+      "threat": "high",
+      "confidence": 0.37,
+      "survival_risk": "elevated"
+    }
+  }
+]

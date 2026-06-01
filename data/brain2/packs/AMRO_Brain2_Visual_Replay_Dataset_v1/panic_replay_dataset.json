@@ -1,0 +1,20 @@
+[
+  {
+    "pattern_id": "PANIC_001",
+    "market_state": "high_volatility",
+    "visual_behavior": [
+      "large bearish displacement",
+      "spread expansion",
+      "liquidity instability"
+    ],
+    "emotion": "panic",
+    "probability_note": {
+      "violent_reversal": 0.57,
+      "continuation": 0.31
+    },
+    "failure_mode": [
+      "news spike distortion",
+      "false liquidity collapse"
+    ]
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "pattern_id": "EDGE_001",
+    "pattern_name": "breakout_continuation",
+    "historical_success_rate": 0.72,
+    "current_success_rate": 0.41,
+    "decay_state": "significant",
+    "possible_cause": [
+      "regime_change",
+      "liquidity_instability"
+    ],
+    "risk_note": "historical edge weakening"
+  }
+]

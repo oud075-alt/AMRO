@@ -1,0 +1,9 @@
+[
+  {
+    "transition_id": "TRANS_001",
+    "before_emotion": "hesitation",
+    "trigger": "liquidity_sweep",
+    "after_emotion": "panic",
+    "transition_risk": "high"
+  }
+]

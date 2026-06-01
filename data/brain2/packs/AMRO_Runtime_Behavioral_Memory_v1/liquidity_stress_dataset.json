@@ -1,0 +1,17 @@
+[
+  {
+    "event_id": "LIQ_001",
+    "market_state": "liquidity_instability",
+    "observable_behavior": [
+      "spread expansion",
+      "slippage increase",
+      "thin liquidity"
+    ],
+    "emotional_mapping": "fear_instability",
+    "execution_risk": "high",
+    "common_outcome": [
+      "violent rejection",
+      "execution degradation"
+    ]
+  }
+]

@@ -1,0 +1,21 @@
+[
+  {
+    "sequence_id": "SEQ_001",
+    "state_flow": [
+      "hesitation",
+      "aggression",
+      "exhaustion",
+      "panic"
+    ],
+    "visual_signals": [
+      "compression",
+      "impulsive breakout",
+      "weak continuation",
+      "chaotic reversal"
+    ],
+    "probability_transition": {
+      "panic_after_exhaustion": 0.58
+    },
+    "risk_note": "transition instability elevated"
+  }
+]

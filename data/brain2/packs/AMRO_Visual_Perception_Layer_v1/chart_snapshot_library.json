@@ -1,0 +1,51 @@
+[
+  {
+    "snapshot_id": "SNAP_001",
+    "pattern_type": "panic_sequence",
+    "before_state": [
+      "compression",
+      "weak continuation",
+      "liquidity thinning"
+    ],
+    "during_state": [
+      "volatility explosion",
+      "spread expansion",
+      "aggressive bearish displacement"
+    ],
+    "after_state": [
+      "exhaustion",
+      "violent reversal",
+      "temporary stabilization"
+    ],
+    "emotion_flow": [
+      "hesitation",
+      "fear",
+      "panic",
+      "exhaustion"
+    ],
+    "replay_value": "high"
+  },
+  {
+    "snapshot_id": "SNAP_002",
+    "pattern_type": "fake_breakout",
+    "before_state": [
+      "compression",
+      "resistance pressure"
+    ],
+    "during_state": [
+      "breakout spike",
+      "crowd chase"
+    ],
+    "after_state": [
+      "rapid rejection",
+      "liquidity reclaim"
+    ],
+    "emotion_flow": [
+      "hesitation",
+      "greed",
+      "trap",
+      "fear"
+    ],
+    "replay_value": "high"
+  }
+]

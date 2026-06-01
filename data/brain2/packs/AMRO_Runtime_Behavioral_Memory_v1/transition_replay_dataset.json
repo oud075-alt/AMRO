@@ -1,0 +1,18 @@
+[
+  {
+    "transition_id": "TRANSITION_001",
+    "before_state": "compression",
+    "trigger_state": "aggressive_breakout",
+    "after_state": "panic_reversal",
+    "emotional_transition": [
+      "hesitation",
+      "aggression",
+      "panic"
+    ],
+    "failure_mode": [
+      "false continuation",
+      "liquidity sweep"
+    ],
+    "historical_similarity": 0.71
+  }
+]

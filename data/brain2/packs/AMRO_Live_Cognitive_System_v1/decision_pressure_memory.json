@@ -1,0 +1,12 @@
+[
+  {
+    "pressure_id": "PRESS_001",
+    "pressure_behavior": [
+      "FOMO_expansion",
+      "rapid_breakout",
+      "crowd_acceleration"
+    ],
+    "emotional_mapping": "decision_pressure",
+    "human_risk": "impulsive_entry"
+  }
+]

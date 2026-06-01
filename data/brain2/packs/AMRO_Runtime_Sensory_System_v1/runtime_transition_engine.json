@@ -1,0 +1,10 @@
+[
+  {
+    "transition_id": "RUN_001",
+    "before_state": "stable_continuation",
+    "trigger_state": "liquidity_breakdown",
+    "after_state": "panic_instability",
+    "transition_probability": 0.67,
+    "similarity_reference": "panic_sequence_memory"
+  }
+]

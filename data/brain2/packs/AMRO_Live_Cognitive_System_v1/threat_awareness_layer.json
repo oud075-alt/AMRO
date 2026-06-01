@@ -1,0 +1,12 @@
+[
+  {
+    "threat_id": "THREAT_001",
+    "detected_risk": [
+      "liquidity_instability",
+      "panic_acceleration",
+      "execution_degradation"
+    ],
+    "threat_level": "critical",
+    "governance_note": "defensive_mode_recommended"
+  }
+]

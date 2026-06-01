@@ -1,0 +1,9 @@
+[
+  {
+    "threshold_id": "THRESH_001",
+    "market_state": "high_volatility",
+    "old_threshold": 0.5,
+    "new_threshold": 0.72,
+    "adjustment_reason": "prevent oversensitive panic detection"
+  }
+]

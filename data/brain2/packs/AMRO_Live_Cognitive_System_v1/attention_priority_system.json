@@ -1,0 +1,14 @@
+[
+  {
+    "priority_id": "ATTN_001",
+    "market_condition": "high_volatility",
+    "focus_priority": [
+      "liquidity",
+      "spread_behavior",
+      "execution_quality"
+    ],
+    "ignore_priority": [
+      "slow_trend_indicator"
+    ]
+  }
+]

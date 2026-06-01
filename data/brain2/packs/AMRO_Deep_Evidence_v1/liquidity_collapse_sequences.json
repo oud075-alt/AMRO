@@ -1,0 +1,33 @@
+[
+  {
+    "sequence_id": "LIQ_COLLAPSE_001",
+    "state_flow": ["normal_resiliency", "volume_thinning", "spread_widening", "slippage_escalation", "execution_halt"],
+    "regime_dependency": ["VOLATILE", "TRANSITIONAL", "BREAKOUT"],
+    "measurable_markers": {
+      "fill_vol_ratio_threshold": 0.15,
+      "spread_median_mult": 4.0,
+      "slippage_ratio_threshold": 3.0
+    },
+    "execution_implication": "participation must decay before slippage_escalation phase",
+    "failure_mode": ["forced market order into thin book", "chasing breakout after spread spike"],
+    "source": "Amihud illiquidity + Roll spread estimators",
+    "uncertainty": 0.37,
+    "decay_half_life_bars": 48,
+    "replay_verification_required": true
+  },
+  {
+    "sequence_id": "VOL_LIQ_FEEDBACK_001",
+    "state_flow": ["volatility_expansion", "liquidity_withdrawal", "adverse_selection_spike", "false_continuation"],
+    "regime_dependency": ["*"],
+    "measurable_markers": {
+      "instability_min": 0.55,
+      "entropy_min": 0.5
+    },
+    "execution_implication": "trap probability rises when volatility leads liquidity withdrawal",
+    "failure_mode": ["stop cluster acceleration", "liquidity vacuum fade"],
+    "source": "Kyle lambda under stress; Goyenko liquidity correlation studies",
+    "uncertainty": 0.41,
+    "decay_half_life_bars": 36,
+    "replay_verification_required": true
+  }
+]

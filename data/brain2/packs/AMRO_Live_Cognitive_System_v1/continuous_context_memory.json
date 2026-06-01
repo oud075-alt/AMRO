@@ -1,0 +1,13 @@
+[
+  {
+    "context_id": "CTX_001",
+    "timeline": [
+      "compression_phase",
+      "liquidity_thinning",
+      "aggressive_breakout",
+      "failed_followthrough"
+    ],
+    "memory_type": "continuous_market_context",
+    "risk_note": "pressure accumulation detected"
+  }
+]

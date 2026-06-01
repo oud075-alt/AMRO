@@ -1,0 +1,12 @@
+[
+  {
+    "event_id": "LIQ_001",
+    "liquidity_behavior": [
+      "thin_liquidity",
+      "aggressive_absorption",
+      "liquidity_vacuum"
+    ],
+    "emotional_mapping": "market_instability",
+    "market_implication": "elevated manipulation risk"
+  }
+]

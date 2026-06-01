@@ -1,0 +1,14 @@
+[
+  {
+    "annotation_id": "ANN_001",
+    "behavior_zone": "wick rejection",
+    "emotional_mapping": "refusal_pressure",
+    "market_implication": "continuation weakness"
+  },
+  {
+    "annotation_id": "ANN_002",
+    "behavior_zone": "impulsive breakout",
+    "emotional_mapping": "aggressive crowd participation",
+    "market_implication": "elevated instability risk"
+  }
+]

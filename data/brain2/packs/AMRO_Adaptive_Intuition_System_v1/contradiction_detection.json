@@ -1,0 +1,12 @@
+[
+  {
+    "contradiction_id": "CONTRA_001",
+    "observed_conflict": [
+      "bullish breakout",
+      "weak liquidity",
+      "failed continuation"
+    ],
+    "emotional_interpretation": "false confidence risk",
+    "governance_note": "reduce trust in continuation"
+  }
+]
