@@ -6,6 +6,7 @@ MT5 จะเพิ่มทีหลัง
 import yfinance as yf
 import ccxt
 import pandas as pd
+import requests
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from loguru import logger
@@ -13,6 +14,46 @@ from app.core.config import settings
 
 
 # ─── Yahoo Finance (Stocks / Forex / Indices) ───────────────────────────────
+
+_YAHOO_SYMBOL_FALLBACKS: dict[str, list[str]] = {
+    "GC=F": ["XAUUSD=X"],
+    "XAUUSD": ["GC=F", "XAUUSD=X"],
+}
+
+# When Yahoo is blocked on VPS/datacenter IPs, use liquid Binance proxies.
+_BINANCE_PROXY_SYMBOLS: dict[str, str] = {
+    "GC=F": "PAXG/USDT",
+    "XAUUSD": "PAXG/USDT",
+    "XAUUSD=X": "PAXG/USDT",
+}
+
+# Finnhub OANDA symbols (requires FINNHUB_API_KEY)
+_FINNHUB_FOREX: dict[str, str] = {
+    "GC=F": "OANDA:XAU_USD",
+    "XAUUSD=X": "OANDA:XAU_USD",
+    "EURUSD=X": "OANDA:EUR_USD",
+    "GBPUSD=X": "OANDA:GBP_USD",
+    "USDJPY=X": "OANDA:USD_JPY",
+    "USDCHF=X": "OANDA:USD_CHF",
+    "AUDUSD=X": "OANDA:AUD_USD",
+    "USDCAD=X": "OANDA:USD_CAD",
+    "NZDUSD=X": "OANDA:NZD_USD",
+}
+
+_FINNHUB_RESOLUTION: dict[str, int] = {
+    "1m": 1,
+    "5m": 5,
+    "15m": 15,
+    "30m": 30,
+    "1h": 60,
+    "1d": "D",
+}
+
+
+def _candle_limit(interval: str, days: int) -> int:
+    per_day = {"1m": 1440, "5m": 288, "15m": 96, "30m": 48, "1h": 24, "4h": 6, "1d": 1}
+    return min(1500, max(200, days * per_day.get(interval, 24)))
+
 
 def fetch_yahoo(
     symbol: str,
@@ -88,6 +129,118 @@ def get_binance() -> ccxt.binance:
             "enableRateLimit": True,
         })
     return _binance_client
+
+
+def fetch_yahoo_chart(symbol: str, interval: str = "1h", days: int = 30) -> pd.DataFrame:
+    """Yahoo v8 chart API — works when yfinance fails (e.g. VPS/datacenter)."""
+    from urllib.parse import quote
+
+    yahoo_interval = {
+        "1m": "1m",
+        "5m": "5m",
+        "15m": "15m",
+        "30m": "30m",
+        "1h": "60m",
+        "1d": "1d",
+    }.get(interval)
+    if not yahoo_interval:
+        return pd.DataFrame()
+    if days <= 7:
+        range_param = "7d"
+    elif days <= 30:
+        range_param = "1mo"
+    elif days <= 90:
+        range_param = "3mo"
+    else:
+        range_param = "6mo"
+
+    try:
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(symbol, safe='')}"
+        resp = requests.get(
+            url,
+            params={"interval": yahoo_interval, "range": range_param},
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                )
+            },
+            timeout=25,
+        )
+        resp.raise_for_status()
+        result = resp.json()["chart"]["result"][0]
+        quote_data = result["indicators"]["quote"][0]
+        ts = result.get("timestamp") or []
+        if not ts:
+            return pd.DataFrame()
+
+        df = pd.DataFrame(
+            {
+                "open": quote_data.get("open"),
+                "high": quote_data.get("high"),
+                "low": quote_data.get("low"),
+                "close": quote_data.get("close"),
+                "volume": quote_data.get("volume"),
+            },
+            index=pd.to_datetime(ts, unit="s", utc=True),
+        )
+        df.index.name = "timestamp"
+        df["volume"] = df["volume"].fillna(0)
+        df.dropna(subset=["open", "high", "low", "close"], inplace=True)
+        cutoff = pd.Timestamp.now(tz="UTC") - timedelta(days=days)
+        df = df[df.index >= cutoff]
+        if df.empty:
+            return pd.DataFrame()
+        logger.info(f"Fetched {len(df)} rows for {symbol} via Yahoo chart API ({interval})")
+        return df
+    except Exception as e:
+        logger.error(f"Yahoo chart API error for {symbol}: {e}")
+        return pd.DataFrame()
+
+
+def fetch_finnhub_candles(symbol: str, interval: str = "1h", days: int = 30) -> pd.DataFrame:
+    """OHLCV from Finnhub forex candles (needs FINNHUB_API_KEY)."""
+    api_key = settings.FINNHUB_API_KEY
+    finnhub_sym = _FINNHUB_FOREX.get(symbol)
+    resolution = _FINNHUB_RESOLUTION.get(interval)
+    if not api_key or not finnhub_sym or resolution is None:
+        return pd.DataFrame()
+    try:
+        end = int(datetime.now(timezone.utc).timestamp())
+        start = int((datetime.now(timezone.utc) - timedelta(days=days)).timestamp())
+        resp = requests.get(
+            "https://finnhub.io/api/v1/forex/candle",
+            params={
+                "symbol": finnhub_sym,
+                "resolution": resolution,
+                "from": start,
+                "to": end,
+                "token": api_key,
+            },
+            timeout=25,
+        )
+        resp.raise_for_status()
+        payload = resp.json()
+        if payload.get("s") != "ok":
+            logger.warning(f"Finnhub candles unavailable for {symbol}: {payload.get('s')}")
+            return pd.DataFrame()
+        df = pd.DataFrame(
+            {
+                "timestamp": pd.to_datetime(payload["t"], unit="s", utc=True),
+                "open": payload["o"],
+                "high": payload["h"],
+                "low": payload["l"],
+                "close": payload["c"],
+                "volume": payload.get("v", [0] * len(payload["t"])),
+            }
+        )
+        df = df.set_index("timestamp")
+        df.dropna(inplace=True)
+        logger.info(f"Fetched {len(df)} rows for {symbol} via Finnhub ({interval})")
+        return df
+    except Exception as e:
+        logger.error(f"Finnhub candle error for {symbol}: {e}")
+        return pd.DataFrame()
 
 
 def fetch_binance(
@@ -236,6 +389,63 @@ def fetch_historical_as_of(
 
 # ─── Unified Fetcher ─────────────────────────────────────────────────────────
 
+def _fetch_yahoo_with_fallbacks(symbol: str, interval: str, days: int) -> pd.DataFrame:
+    candidates = [symbol]
+    for alt in _YAHOO_SYMBOL_FALLBACKS.get(symbol, []):
+        if alt not in candidates:
+            candidates.append(alt)
+
+    limit = _candle_limit(interval, days)
+
+    def _try_chart_api() -> pd.DataFrame:
+        for candidate in candidates:
+            df = fetch_yahoo_chart(candidate, interval=interval, days=days)
+            if not df.empty:
+                if candidate != symbol:
+                    logger.info(f"Yahoo chart fallback {symbol} -> {candidate} ({len(df)} rows)")
+                else:
+                    logger.info(f"Market data {symbol} via Yahoo chart API")
+                return df
+        return pd.DataFrame()
+
+    def _try_binance_proxy() -> pd.DataFrame:
+        proxy = _BINANCE_PROXY_SYMBOLS.get(symbol)
+        if not proxy:
+            return pd.DataFrame()
+        logger.warning(f"Yahoo unavailable for {symbol}; using Binance proxy {proxy}")
+        return fetch_binance(proxy, timeframe=interval, limit=limit)
+
+    # On VPS/datacenter IPs yfinance often returns empty JSON (see YFTzMissingError in logs).
+    if settings.APP_ENV == "production":
+        df = _try_chart_api()
+        if not df.empty:
+            return df
+        df = _try_binance_proxy()
+        if not df.empty:
+            return df
+        df = fetch_finnhub_candles(symbol, interval=interval, days=days)
+        if not df.empty:
+            return df
+        return pd.DataFrame()
+
+    for candidate in candidates:
+        df = fetch_yahoo(candidate, interval=interval, days=days)
+        if not df.empty:
+            if candidate != symbol:
+                logger.info(f"Yahoo fallback symbol {symbol} -> {candidate} ({len(df)} rows)")
+            return df
+
+    df = _try_chart_api()
+    if not df.empty:
+        return df
+
+    df = fetch_finnhub_candles(symbol, interval=interval, days=days)
+    if not df.empty:
+        return df
+
+    return _try_binance_proxy()
+
+
 def fetch_market_data(
     symbol: str,
     source: str = "auto",
@@ -247,7 +457,7 @@ def fetch_market_data(
 
     source: "auto" | "yahoo" | "binance"
     """
+    limit = _candle_limit(interval, days)
     if source == "binance" or (source == "auto" and "/" in symbol):
-        return fetch_binance(symbol, timeframe=interval, limit=days * 24)
-    else:
-        return fetch_yahoo(symbol, interval=interval, days=days)
+        return fetch_binance(symbol, timeframe=interval, limit=limit)
+    return _fetch_yahoo_with_fallbacks(symbol, interval=interval, days=days)

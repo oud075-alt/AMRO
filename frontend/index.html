@@ -2700,6 +2700,15 @@ async function loadSignal() {
     showLoading('กำลังดึง governance state จาก ' + state.symbol + '...');
     const data = await apiFetch(url);
     hideLoading();
+    if (data && data.error) {
+      const banner = document.getElementById('errorBanner');
+      banner.textContent = '⚠️ ' + data.error + ' — ลอง Refresh หรือเลือก BTC/USDT';
+      banner.classList.remove('hidden');
+      renderGovernancePanel(null);
+      applyAuditHierarchy(null);
+      showToast('❌ ' + data.error, 'error');
+      return;
+    }
     document.getElementById('errorBanner').classList.add('hidden');
     renderDashboard(data);
   } catch(e) {
