@@ -41,10 +41,9 @@ class RuntimeDecision:
     market_environment: dict[str, Any] | None = None
     final_execution_reason: str = ""
     replay_validation: dict[str, Any] | None = None
-    brain2_cognition: dict[str, Any] | None = None
-    brain2_analyst: dict[str, Any] | None = None
-    brain3_judge: dict[str, Any] | None = None
-    ai_brains: dict[str, Any] | None = None
+    brain1: dict[str, Any] | None = None
+    brain2: dict[str, Any] | None = None
+    brain3: dict[str, Any] | None = None
 
     def to_api_response(self, **extra) -> dict[str, Any]:
         gov = self.governance
@@ -84,14 +83,14 @@ class RuntimeDecision:
             resp["runtime_state"] = self.runtime_health.to_dict()
         if self.replay_validation:
             resp["replay_validation"] = self.replay_validation
-        if self.brain2_cognition:
-            resp["brain2_cognition"] = self.brain2_cognition
-        if self.brain2_analyst:
-            resp["brain2_analyst"] = self.brain2_analyst
-        if self.brain3_judge:
-            resp["brain3_judge"] = self.brain3_judge
-        if self.ai_brains:
-            resp["ai_brains"] = self.ai_brains
+        if self.brain1:
+            resp["brain1"] = self.brain1
+        if self.brain2:
+            resp["brain2"] = self.brain2
+            if self.brain2.get("cognition"):
+                resp["brain2_cognition"] = self.brain2["cognition"]
+        if self.brain3:
+            resp["brain3"] = self.brain3
         resp.update(extra)
         return resp
 
@@ -152,8 +151,7 @@ def run_runtime(
         market_environment=result.get("market_environment"),
         final_execution_reason=result["final_execution_reason"],
         replay_validation=result.get("replay_validation"),
-        brain2_cognition=result.get("brain2_cognition"),
-        brain2_analyst=result.get("brain2_analyst"),
-        brain3_judge=result.get("brain3_judge"),
-        ai_brains=result.get("ai_brains"),
+        brain1=result.get("brain1"),
+        brain2=result.get("brain2"),
+        brain3=result.get("brain3"),
     )

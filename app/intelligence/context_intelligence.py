@@ -10,7 +10,7 @@ from typing import Any
 
 from loguru import logger
 
-from app.core.config import settings
+from app.intelligence import brain_stack
 from app.intelligence.finnhub_client import fetch_finnhub_intelligence, format_for_brain1
 from app.intelligence.gemini_agent import run_gemini_intelligence, IntelligenceReport
 
@@ -77,9 +77,7 @@ def run_context_intelligence(symbol: str) -> ContextIntelligence:
     AI #1 — context only. Fail closed on missing/invalid LLM output.
     """
     asset = symbol.replace("=X", "").replace("/", "")
-    api_key = getattr(settings, "OPENAI_API_KEY_INTEL", None) or getattr(settings, "OPENAI_API_KEY", None)
-
-    if not api_key:
+    if not brain_stack.brain1_active():
         logger.warning("[AI#1] No API key — fail closed")
         return ContextIntelligence(
             asset=asset,

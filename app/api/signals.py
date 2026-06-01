@@ -18,7 +18,7 @@ from app.services.auth import get_current_tier
 from app.intelligence.runtime_orchestrator import run_runtime
 from app.intelligence.regime_detector import detect_regime
 from app.intelligence.market_data import fetch_market_data
-from app.core.config import settings
+from app.intelligence import brain_stack
 
 router = APIRouter(prefix="/api/signals", tags=["signals"])
 
@@ -57,7 +57,7 @@ async def get_signal(
         symbol=symbol,
         interval=interval,
         days=fetch_days,
-        run_context_llm=settings.AMRO_AI_BRAINS_ENABLED,
+        run_context_llm=brain_stack.brain1_active(),
         log_decision=True,
         df=df,
     )

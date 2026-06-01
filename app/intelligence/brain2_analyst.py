@@ -11,12 +11,11 @@ from typing import Any
 from loguru import logger
 from openai import OpenAI
 
-from app.core.config import settings
+from app.intelligence import brain_stack
 from app.intelligence.brain2.models import Brain2CognitionState
 from app.intelligence.context.context_state import ContextState
 from app.intelligence.market_runtime.structure.market_structure import MarketStructureState
 
-MODEL = "gpt-4o-mini"
 BANNED = ("guaranteed", "certainly will", "buy now", "sell now", "must trade", "100%")
 
 
@@ -27,7 +26,7 @@ class Brain2AnalystReport:
     environment_read: str
     uncertainty_note: str
     intelligence_quality: str  # FULL | PARTIAL | DEGRADED
-    model: str = MODEL
+    model: str = brain_stack.BRAIN2_MODEL
     active: bool = False
     error: str | None = None
 
@@ -67,11 +66,11 @@ def run_brain2_analyst(
     brain2: Brain2CognitionState,
     context: ContextState,
 ) -> Brain2AnalystReport:
-    api_key = settings.OPENAI_API_KEY or ""
-    if not api_key or not settings.AMRO_BRAIN2_ANALYST_LLM:
+    api_key = brain_stack.brain2_api_key()
+    if not brain_stack.brain2_active():
         return Brain2AnalystReport(
             symbol=symbol,
-            analyst_summary="Brain 2 analyst LLM disabled or no OPENAI_API_KEY.",
+            analyst_summary="Brain 2 inactive — set OPENAI_API_KEY for analyst layer.",
             environment_read="—",
             uncertainty_note="Use Brain-2 cognition output only.",
             intelligence_quality="DEGRADED",
@@ -104,7 +103,7 @@ def run_brain2_analyst(
     try:
         client = OpenAI(api_key=api_key)
         resp = client.chat.completions.create(
-            model=MODEL,
+            model=brain_stack.BRAIN2_MODEL,
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},

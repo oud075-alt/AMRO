@@ -4005,17 +4005,15 @@ async function runPipeline(symbol) {
 }
 
 function syncAiBrainIndicators(d) {
-  const ab = d?.ai_brains || {};
-  const label = (b, off) => {
-    if (!b) return off;
-    return b.active ? `GPT-4o mini · ${(b.summary || 'active').slice(0, 32)}` : off;
-  };
+  const b1 = d?.brain1 || {};
+  const b2 = d?.brain2 || {};
+  const b3 = d?.brain3 || {};
   const bp1 = document.getElementById('bp1Status');
   const bp2 = document.getElementById('bp2Status');
   const bp3 = document.getElementById('bp3Status');
-  if (bp1) bp1.textContent = label(ab.brain1, d?.news_context?.summary?.includes('skipped') ? 'SKIP' : 'CTX');
-  if (bp2) bp2.textContent = label(ab.brain2, d?.brain2_analyst?.active ? 'ANALYST' : 'COGNITION');
-  if (bp3) bp3.textContent = label(ab.brain3, (d?.governance?.verdict || d?.brain3_judge?.verdict_echo || 'GOV'));
+  if (bp1) bp1.textContent = b1.active ? `B1 · ${(b1.summary || 'GPT').slice(0, 28)}` : 'B1 OFF';
+  if (bp2) bp2.textContent = b2.analyst_active ? `B2 · ${(b2.summary || 'GPT').slice(0, 28)}` : 'B2 MEM';
+  if (bp3) bp3.textContent = b3.judge_active ? `B3 · ${(b3.summary || 'GPT').slice(0, 28)}` : (b3.governance_verdict || 'B3 GOV');
 }
 
 function renderPipeline(d) {
@@ -4031,7 +4029,7 @@ function renderPipeline(d) {
   const set = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
 
   const nc = d.news_context || {};
-  set('p1Sentiment', (d.ai_brains?.brain1?.active ? 'GPT ' : '') + (nc.summary || nc.market_context || '—').slice(0, 48));
+  set('p1Sentiment', (d.brain1?.active ? 'GPT ' : '') + (nc.summary || nc.market_context || '—').slice(0, 48));
   set('p1Score', pct(d.context_state?.event_risk));
   set('p1Risk', d.context_state?.invalidate_trade ? 'INVALIDATE' : 'OK');
   set('p1News', d.context_state?.summary ? d.context_state.summary.slice(0, 60) + '...' : '—');
@@ -4041,7 +4039,7 @@ function renderPipeline(d) {
       .map(e => `<div>• ${e}</div>`).join('') || '<div style="color:var(--muted)">—</div>';
   }
 
-  set('p2Dir', (d.brain2_analyst?.analyst_summary || d.market_runtime_state?.market_state || '—').slice(0, 48));
+  set('p2Dir', (d.brain2?.analyst?.analyst_summary || d.brain2?.summary || d.market_runtime_state?.market_state || '—').slice(0, 48));
   set('p2Conf', pct(d.market_runtime_state?.structure_confidence));
   set('p2Entry', '—');
   set('p2SL', '—');

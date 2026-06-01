@@ -22,7 +22,7 @@ from typing import Optional
 from loguru import logger
 from openai import OpenAI
 
-from app.core.config import settings
+from app.intelligence import brain_stack
 
 
 # ── AMRO Language Constitution ─────────────────────────────────────────────────
@@ -164,9 +164,9 @@ def run_gemini_intelligence(symbol: str, real_news_text: str = "") -> Intelligen
     สังเกต — รวบรวม — ส่งต่อ — ไม่ตัดสิน
     real_news_text: ข่าวจริงจาก Finnhub (ถ้ามี)
     """
-    api_key = getattr(settings, "OPENAI_API_KEY_INTEL", None) or getattr(settings, "OPENAI_API_KEY", None)
-    if not api_key:
-        logger.warning("[Brain 1] OPENAI_API_KEY_INTEL ไม่ได้ตั้งค่า — degraded fallback")
+    api_key = brain_stack.brain1_api_key()
+    if not brain_stack.brain1_active():
+        logger.warning("[Brain 1] No OPENAI_API_KEY_INTEL — degraded fallback")
         return _degraded_report(symbol, "No OPENAI_API_KEY_INTEL")
 
     try:
@@ -198,7 +198,7 @@ def run_gemini_intelligence(symbol: str, real_news_text: str = "") -> Intelligen
         )
 
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=brain_stack.BRAIN1_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": user_prompt},

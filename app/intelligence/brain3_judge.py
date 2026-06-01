@@ -11,15 +11,12 @@ from typing import Any
 from loguru import logger
 from openai import OpenAI
 
-from app.core.config import settings
+from app.intelligence import brain_stack
 from app.governance.runtime_constitution.governance_engine import GovernanceDecision
 from app.intelligence.brain2.models import Brain2CognitionState
 from app.intelligence.brain2_analyst import Brain2AnalystReport
 from app.intelligence.context.context_state import ContextState
 from app.intelligence.market_runtime.structure.market_structure import MarketStructureState
-
-MODEL = "gpt-4o-mini"
-
 
 @dataclass
 class Brain3JudgeReport:
@@ -27,7 +24,7 @@ class Brain3JudgeReport:
     verdict_echo: str
     judge_summary: str
     participation_stance: str
-    model: str = MODEL
+    model: str = brain_stack.BRAIN3_MODEL
     active: bool = False
     aligned_with_governance: bool = True
     error: str | None = None
@@ -44,12 +41,12 @@ def run_brain3_judge(
     governance: GovernanceDecision,
     analyst: Brain2AnalystReport | None = None,
 ) -> Brain3JudgeReport:
-    api_key = settings.OPENAI_API_KEY_JUDGE or settings.OPENAI_API_KEY or ""
-    if not api_key or not settings.AMRO_BRAIN3_JUDGE_LLM:
+    api_key = brain_stack.brain3_api_key()
+    if not brain_stack.brain3_active():
         return Brain3JudgeReport(
             symbol=symbol,
             verdict_echo=governance.verdict.value,
-            judge_summary="Brain 3 judge LLM disabled or no OPENAI_API_KEY_JUDGE.",
+            judge_summary="Brain 3 inactive — set OPENAI_API_KEY_JUDGE for judge layer.",
             participation_stance="governance_only",
             active=False,
             error="no_key_or_disabled",
@@ -84,7 +81,7 @@ def run_brain3_judge(
     try:
         client = OpenAI(api_key=api_key)
         resp = client.chat.completions.create(
-            model=MODEL,
+            model=brain_stack.BRAIN3_MODEL,
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
