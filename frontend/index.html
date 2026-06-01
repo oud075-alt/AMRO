@@ -2690,7 +2690,10 @@ function signalRefreshMs() {
   return 60 * 1000;
 }
 
+let _loadSignalGen = 0;
+
 async function loadSignal() {
+  const reqGen = ++_loadSignalGen;
   const sym   = encodeURIComponent(state.symbol);
   const url   = `/api/signals/${sym}?audit=false&interval=${signalInterval()}&_t=${Date.now()}`;
   renderGovernancePanel(null);
@@ -2698,20 +2701,30 @@ async function loadSignal() {
 
   try {
     showLoading('กำลังดึง governance state จาก ' + state.symbol + '...');
-    const data = await apiFetch(url);
+    const data = await apiFetch(url, { timeoutMs: 120000 });
+    if (reqGen !== _loadSignalGen) return;
     hideLoading();
     if (data && data.error) {
       const banner = document.getElementById('errorBanner');
-      banner.textContent = '⚠️ ' + data.error + ' — ลอง Refresh หรือเลือก BTC/USDT';
+      banner.textContent = '⚠️ ' + data.error + ' — รอ 10 วินาทีแล้วกด Refresh (หรือเลือก BTC/USDT)';
       banner.classList.remove('hidden');
       renderGovernancePanel(null);
       applyAuditHierarchy(null);
       showToast('❌ ' + data.error, 'error');
       return;
     }
+    if (data && data.message && data.price == null) {
+      const banner = document.getElementById('errorBanner');
+      banner.textContent = '⚠️ ' + data.message + ' — ใช้ ?trial=1 หรือ Login เพื่อข้อมูลล่าสุด';
+      banner.classList.remove('hidden');
+      renderGovernancePanel(null);
+      applyAuditHierarchy(null);
+      return;
+    }
     document.getElementById('errorBanner').classList.add('hidden');
     renderDashboard(data);
   } catch(e) {
+    if (reqGen !== _loadSignalGen) return;
     hideLoading();
     const msg = e.message || 'ไม่สามารถดึงข้อมูลได้';
     const banner = document.getElementById('errorBanner');

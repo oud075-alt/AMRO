@@ -3,6 +3,7 @@ AMRO — Market Data Fetcher
 รองรับ: Yahoo Finance (stocks/forex) + Binance (crypto)
 MT5 จะเพิ่มทีหลัง
 """
+import time
 import yfinance as yf
 import ccxt
 import pandas as pd
@@ -11,6 +12,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from loguru import logger
 from app.core.config import settings
+
+_MARKET_DATA_CACHE: dict[tuple, tuple[float, pd.DataFrame]] = {}
+_MARKET_DATA_CACHE_TTL_SEC = 45
 
 
 # ─── Yahoo Finance (Stocks / Forex / Indices) ───────────────────────────────
@@ -25,6 +29,16 @@ _BINANCE_PROXY_SYMBOLS: dict[str, str] = {
     "GC=F": "PAXG/USDT",
     "XAUUSD": "PAXG/USDT",
     "XAUUSD=X": "PAXG/USDT",
+}
+
+# Kraken spot FX — reliable from VPS when Yahoo rate-limits datacenter IPs.
+_KRAKEN_FOREX: dict[str, str] = {
+    "EURUSD=X": "EUR/USD",
+    "GBPUSD=X": "GBP/USD",
+    "USDJPY=X": "USD/JPY",
+    "USDCHF=X": "USD/CHF",
+    "AUDUSD=X": "AUD/USD",
+    "USDCAD=X": "USD/CAD",
 }
 
 # Finnhub OANDA symbols (requires FINNHUB_API_KEY)
@@ -119,6 +133,42 @@ def fetch_yahoo(
 # ─── Binance (Crypto) ────────────────────────────────────────────────────────
 
 _binance_client: Optional[ccxt.binance] = None
+_kraken_client: Optional[ccxt.kraken] = None
+
+
+def get_kraken() -> ccxt.kraken:
+    global _kraken_client
+    if _kraken_client is None:
+        _kraken_client = ccxt.kraken({"enableRateLimit": True})
+    return _kraken_client
+
+
+def fetch_kraken_forex(
+    symbol: str,
+    timeframe: str = "1h",
+    limit: int = 200,
+) -> pd.DataFrame:
+    pair = _KRAKEN_FOREX.get(symbol)
+    if not pair:
+        return pd.DataFrame()
+    try:
+        exchange = get_kraken()
+        ohlcv = exchange.fetch_ohlcv(pair, timeframe=timeframe, limit=limit)
+        if not ohlcv:
+            return pd.DataFrame()
+        df = pd.DataFrame(
+            ohlcv,
+            columns=["timestamp", "open", "high", "low", "close", "volume"],
+        )
+        df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms", utc=True)
+        df.set_index("timestamp", inplace=True)
+        df.dropna(inplace=True)
+        logger.info(f"Fetched {len(df)} rows for {symbol} via Kraken {pair} ({timeframe})")
+        return df
+    except Exception as e:
+        logger.error(f"Kraken fetch error for {symbol} ({pair}): {e}")
+        return pd.DataFrame()
+
 
 def get_binance() -> ccxt.binance:
     global _binance_client
@@ -154,21 +204,31 @@ def fetch_yahoo_chart(symbol: str, interval: str = "1h", days: int = 30) -> pd.D
     else:
         range_param = "6mo"
 
-    try:
-        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(symbol, safe='')}"
-        resp = requests.get(
-            url,
-            params={"interval": yahoo_interval, "range": range_param},
-            headers={
-                "User-Agent": (
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                )
-            },
-            timeout=25,
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         )
-        resp.raise_for_status()
-        result = resp.json()["chart"]["result"][0]
+    }
+    params = {"interval": yahoo_interval, "range": range_param}
+    encoded = quote(symbol, safe="")
+
+    try:
+        result = None
+        for host in ("query1.finance.yahoo.com", "query2.finance.yahoo.com"):
+            url = f"https://{host}/v8/finance/chart/{encoded}"
+            resp = requests.get(url, params=params, headers=headers, timeout=25)
+            resp.raise_for_status()
+            chart = resp.json().get("chart") or {}
+            if chart.get("error"):
+                continue
+            results = chart.get("result") or []
+            if not results:
+                continue
+            result = results[0]
+            break
+        if result is None:
+            return pd.DataFrame()
         quote_data = result["indicators"]["quote"][0]
         ts = result.get("timestamp") or []
         if not ts:
@@ -408,6 +468,12 @@ def _fetch_yahoo_with_fallbacks(symbol: str, interval: str, days: int) -> pd.Dat
                 return df
         return pd.DataFrame()
 
+    def _try_kraken() -> pd.DataFrame:
+        if symbol not in _KRAKEN_FOREX:
+            return pd.DataFrame()
+        logger.warning(f"Yahoo unavailable for {symbol}; using Kraken {_KRAKEN_FOREX[symbol]}")
+        return fetch_kraken_forex(symbol, timeframe=interval, limit=limit)
+
     def _try_binance_proxy() -> pd.DataFrame:
         proxy = _BINANCE_PROXY_SYMBOLS.get(symbol)
         if not proxy:
@@ -418,6 +484,9 @@ def _fetch_yahoo_with_fallbacks(symbol: str, interval: str, days: int) -> pd.Dat
     # On VPS/datacenter IPs yfinance often returns empty JSON (see YFTzMissingError in logs).
     if settings.APP_ENV == "production":
         df = _try_chart_api()
+        if not df.empty:
+            return df
+        df = _try_kraken()
         if not df.empty:
             return df
         df = _try_binance_proxy()
@@ -439,6 +508,10 @@ def _fetch_yahoo_with_fallbacks(symbol: str, interval: str, days: int) -> pd.Dat
     if not df.empty:
         return df
 
+    df = _try_kraken()
+    if not df.empty:
+        return df
+
     df = fetch_finnhub_candles(symbol, interval=interval, days=days)
     if not df.empty:
         return df
@@ -457,7 +530,18 @@ def fetch_market_data(
 
     source: "auto" | "yahoo" | "binance"
     """
+    cache_key = (symbol, interval, days, source)
+    now = time.time()
+    cached = _MARKET_DATA_CACHE.get(cache_key)
+    if cached and (now - cached[0]) < _MARKET_DATA_CACHE_TTL_SEC:
+        return cached[1].copy()
+
     limit = _candle_limit(interval, days)
     if source == "binance" or (source == "auto" and "/" in symbol):
-        return fetch_binance(symbol, timeframe=interval, limit=limit)
-    return _fetch_yahoo_with_fallbacks(symbol, interval=interval, days=days)
+        df = fetch_binance(symbol, timeframe=interval, limit=limit)
+    else:
+        df = _fetch_yahoo_with_fallbacks(symbol, interval=interval, days=days)
+
+    if not df.empty:
+        _MARKET_DATA_CACHE[cache_key] = (now, df.copy())
+    return df
