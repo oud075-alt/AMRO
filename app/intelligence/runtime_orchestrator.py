@@ -42,6 +42,9 @@ class RuntimeDecision:
     final_execution_reason: str = ""
     replay_validation: dict[str, Any] | None = None
     brain2_cognition: dict[str, Any] | None = None
+    brain2_analyst: dict[str, Any] | None = None
+    brain3_judge: dict[str, Any] | None = None
+    ai_brains: dict[str, Any] | None = None
 
     def to_api_response(self, **extra) -> dict[str, Any]:
         gov = self.governance
@@ -83,6 +86,12 @@ class RuntimeDecision:
             resp["replay_validation"] = self.replay_validation
         if self.brain2_cognition:
             resp["brain2_cognition"] = self.brain2_cognition
+        if self.brain2_analyst:
+            resp["brain2_analyst"] = self.brain2_analyst
+        if self.brain3_judge:
+            resp["brain3_judge"] = self.brain3_judge
+        if self.ai_brains:
+            resp["ai_brains"] = self.ai_brains
         resp.update(extra)
         return resp
 
@@ -144,4 +153,7 @@ def run_runtime(
         final_execution_reason=result["final_execution_reason"],
         replay_validation=result.get("replay_validation"),
         brain2_cognition=result.get("brain2_cognition"),
+        brain2_analyst=result.get("brain2_analyst"),
+        brain3_judge=result.get("brain3_judge"),
+        ai_brains=result.get("ai_brains"),
     )

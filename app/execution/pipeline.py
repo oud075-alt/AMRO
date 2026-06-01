@@ -36,6 +36,7 @@ from app.replay.replay_engine import load_snapshot, store_snapshot
 from app.replay.replay_validator import validate_replay
 from app.telemetry.decision_lineage import build_lineage, record_lineage
 from app.ui.market_environment import compute_market_environment_card
+from app.core.config import settings
 
 
 def _drawdown_proxy(df: pd.DataFrame) -> float:
@@ -144,8 +145,22 @@ def run_execution_pipeline(
     )
     abst_pressure = compute_abstention_pressure(market, abstention)
 
+    brain2_analyst = None
+    if settings.AMRO_AI_BRAINS_ENABLED and settings.AMRO_BRAIN2_ANALYST_LLM:
+        from app.intelligence.brain2_analyst import run_brain2_analyst
+
+        brain2_analyst = run_brain2_analyst(symbol, market, brain2, context)
+
     # AI #3 — Governance (Brain-2 advisory input; sole execution authority)
     gov = evaluate_governance(context, market, edges=edges, ecology=ecology_audit, brain2=brain2)
+
+    brain3_judge = None
+    if settings.AMRO_AI_BRAINS_ENABLED and settings.AMRO_BRAIN3_JUDGE_LLM:
+        from app.intelligence.brain3_judge import run_brain3_judge
+
+        brain3_judge = run_brain3_judge(
+            symbol, context, market, brain2, gov, analyst=brain2_analyst
+        )
 
     # Capital Allocation (reads gov + abstention outputs only)
     allocation = allocate_capital(
@@ -326,5 +341,28 @@ def run_execution_pipeline(
         "market_environment": market_environment,
         "replay_validation": replay_validation.to_dict() if replay_validation else None,
         "brain2_cognition": brain2.to_dict(),
-        "architecture": "amro_consolidated_runtime_v8_brain2",
+        "brain2_analyst": brain2_analyst.to_dict() if brain2_analyst else None,
+        "brain3_judge": brain3_judge.to_dict() if brain3_judge else None,
+        "ai_brains": {
+            "brain1": {
+                "role": "context_sensor",
+                "model": "gpt-4o-mini",
+                "active": run_context_llm and not (context.summary or "").startswith("Context LLM skipped"),
+                "summary": (context.summary or "")[:120],
+            },
+            "brain2": {
+                "role": "analyst",
+                "model": "gpt-4o-mini",
+                "active": bool(brain2_analyst and brain2_analyst.active),
+                "summary": (brain2_analyst.analyst_summary if brain2_analyst else "cognition_only")[:120],
+            },
+            "brain3": {
+                "role": "judge",
+                "model": "gpt-4o-mini",
+                "active": bool(brain3_judge and brain3_judge.active),
+                "summary": (brain3_judge.judge_summary if brain3_judge else gov.reason)[:120],
+                "verdict": gov.verdict.value,
+            },
+        },
+        "architecture": "amro_consolidated_runtime_v8_brain2_ai123",
     }

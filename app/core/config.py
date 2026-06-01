@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     # OpenAI Brain 3 (Judge) — ใช้ key คนละตัวกับ Brain 2
     OPENAI_API_KEY_JUDGE: str = ""
 
+    # AI Brains — dashboard / trial should enable full 1/2/3 stack
+    AMRO_AI_BRAINS_ENABLED: bool = True
+    AMRO_BRAIN2_ANALYST_LLM: bool = True
+    AMRO_BRAIN3_JUDGE_LLM: bool = True
+
     # Finnhub (Brain 1 — Real News + Economic Calendar)
     FINNHUB_API_KEY: str = ""
 

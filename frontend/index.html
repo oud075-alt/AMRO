@@ -2771,6 +2771,7 @@ function renderDashboard(d) {
   if (dotData) dotData.className = 'health-dot ' + (d.price ? 'ok' : 'err');
   safe('dataFreshness', d.timestamp ? d.timestamp.replace('T',' ').slice(0,16) + ' UTC' : '—');
   updateSessionWidget();
+  syncAiBrainIndicators(d);
 
   // ── Market Decision Card (unified hero) ──────────────────
   renderMarketDecisionCard(d, approved);
@@ -4003,6 +4004,20 @@ async function runPipeline(symbol) {
   }
 }
 
+function syncAiBrainIndicators(d) {
+  const ab = d?.ai_brains || {};
+  const label = (b, off) => {
+    if (!b) return off;
+    return b.active ? `GPT-4o mini · ${(b.summary || 'active').slice(0, 32)}` : off;
+  };
+  const bp1 = document.getElementById('bp1Status');
+  const bp2 = document.getElementById('bp2Status');
+  const bp3 = document.getElementById('bp3Status');
+  if (bp1) bp1.textContent = label(ab.brain1, d?.news_context?.summary?.includes('skipped') ? 'SKIP' : 'CTX');
+  if (bp2) bp2.textContent = label(ab.brain2, d?.brain2_analyst?.active ? 'ANALYST' : 'COGNITION');
+  if (bp3) bp3.textContent = label(ab.brain3, (d?.governance?.verdict || d?.brain3_judge?.verdict_echo || 'GOV'));
+}
+
 function renderPipeline(d) {
   const idle = document.getElementById('pipelineIdle');
   const res  = document.getElementById('pipelineResult');
@@ -4015,7 +4030,8 @@ function renderPipeline(d) {
     ? (v <= 1 ? (v * 100).toFixed(0) + '%' : String(v)) : '—';
   const set = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
 
-  set('p1Sentiment', d.context_state?.market_context?.slice(0, 40) || '—');
+  const nc = d.news_context || {};
+  set('p1Sentiment', (d.ai_brains?.brain1?.active ? 'GPT ' : '') + (nc.summary || nc.market_context || '—').slice(0, 48));
   set('p1Score', pct(d.context_state?.event_risk));
   set('p1Risk', d.context_state?.invalidate_trade ? 'INVALIDATE' : 'OK');
   set('p1News', d.context_state?.summary ? d.context_state.summary.slice(0, 60) + '...' : '—');
@@ -4025,7 +4041,7 @@ function renderPipeline(d) {
       .map(e => `<div>• ${e}</div>`).join('') || '<div style="color:var(--muted)">—</div>';
   }
 
-  set('p2Dir', d.market_runtime_state?.market_state || '—');
+  set('p2Dir', (d.brain2_analyst?.analyst_summary || d.market_runtime_state?.market_state || '—').slice(0, 48));
   set('p2Conf', pct(d.market_runtime_state?.structure_confidence));
   set('p2Entry', '—');
   set('p2SL', '—');
@@ -4036,7 +4052,7 @@ function renderPipeline(d) {
   set('p3Verdict', d.governance_decision?.verdict || '—');
   set('p3Approved', d.approved ? 'YES' : 'NO');
   set('p3Limit', d.position_limit !== undefined ? String(d.position_limit) : '—');
-  set('p3Reason', d.governance_reason || '—');
+  set('p3Reason', (d.brain3_judge?.judge_summary || d.governance_reason || d.governance?.reason || '—').slice(0, 120));
   set('p3Risk', d.risk_mode || '—');
 
   const aiVal = document.getElementById('aiConsensusVal');
@@ -4059,12 +4075,7 @@ function renderPipeline(d) {
   const tsEl = document.getElementById('pTimestamp');
   if (tsEl) tsEl.textContent = d.timestamp ? d.timestamp.replace('T',' ').slice(0,19) + ' UTC' : '';
 
-  const bp1 = document.getElementById('bp1Status');
-  const bp2 = document.getElementById('bp2Status');
-  const bp3 = document.getElementById('bp3Status');
-  if (bp1) bp1.textContent = document.getElementById('p1Sentiment')?.textContent || '—';
-  if (bp2) bp2.textContent = document.getElementById('p2Dir')?.textContent || '—';
-  if (bp3) bp3.textContent = document.getElementById('p3Approved')?.textContent || '—';
+  syncAiBrainIndicators(d);
 }
 
 // ── Auto-refresh every 5 min ─────────────────────────────
