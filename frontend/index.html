@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AMRO — AI Trading Intelligence</title>
+<title>AMRO ENGIN — AI Trading Intelligence</title>
 <!-- PocketBase JS SDK (local first — avoids CDN tracking-prevention blocks) -->
 <script src="vendor/pocketbase.umd.js"></script>
 <script>
@@ -1982,7 +1982,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
 <!-- Loading Overlay -->
 <div class="auth-modal-overlay" id="authModalOverlay" onclick="if(event.target===this)closeAuthModal()">
   <div class="auth-modal" role="dialog" aria-labelledby="authModalTitle">
-    <h3 id="authModalTitle">เข้าสู่ระบบ AMRO</h3>
+    <h3 id="authModalTitle">เข้าสู่ระบบ AMRO ENGIN</h3>
     <p class="auth-sub" id="authModalSub">สมัครด้วยอีเมลของคุณ แล้วเปิดลิงก์ยืนยันในกล่องจดหมายก่อนใช้งาน</p>
     <div class="auth-tabs">
       <button type="button" class="auth-tab" id="authTabSignup" onclick="setAuthTab('signup')">สมัครสมาชิก</button>
@@ -2026,7 +2026,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
   <div class="logo" onclick="goHome()">
     <div class="logo-icon">A</div>
     <div>
-      <div class="logo-text">AMRO</div>
+      <div class="logo-text">AMRO ENGIN</div>
       <div class="logo-sub">AI TRADING INTELLIGENCE</div>
     </div>
   </div>
@@ -2048,7 +2048,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
   <div class="hero">
     <div class="hero-badge">🧠 AI Trading Intelligence</div>
     <h1>ระบบ <span>คัดกรองความจริง</span><br>ของตลาดการเงิน</h1>
-    <p>AMRO ไม่ใช่แค่ indicator แต่คือระบบที่บอกได้ว่า <strong>signal นี้เชื่อได้แค่ไหน</strong><br>และตลาดอยู่ใน <strong>state ไหน</strong> ก่อนที่คุณจะกด Buy หรือ Sell</p>
+    <p>AMRO ENGIN ไม่ใช่แค่ indicator แต่คือระบบที่บอกได้ว่า <strong>signal นี้เชื่อได้แค่ไหน</strong><br>และตลาดอยู่ใน <strong>state ไหน</strong> ก่อนที่คุณจะกด Buy หรือ Sell</p>
     <div class="hero-cta">
       <button class="btn btn-primary" style="font-size:15px;padding:12px 28px;" onclick="openAuthModal('signup')">เริ่มใช้งานฟรี — สมัครด้วยอีเมล</button>
       <button class="btn btn-outline" style="font-size:15px;padding:12px 28px;" onclick="loginWithGoogle()">Sign in with Google</button>
@@ -2116,7 +2116,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
     <div class="sidebar-logo" onclick="goHome()">
       <div class="logo-icon">A</div>
       <div>
-        <div class="logo-text">AMRO</div>
+        <div class="logo-text">AMRO ENGIN</div>
         <div class="logo-sub">AI TRADING INTELLIGENCE</div>
       </div>
     </div>
@@ -2183,7 +2183,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
     </div><!-- /sidebar-watchlist -->
 
     <div class="sidebar-footer">
-      <div class="sidebar-version">AMRO v2.1.0</div>
+      <div class="sidebar-version">AMRO ENGIN v2.1.0</div>
     </div>
 
   </aside><!-- /sidebar -->
@@ -2194,7 +2194,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
       <div class="dash-header-left">
         <button class="mobile-sidebar-btn dash-mobile-menu" id="dashAuthBtn" type="button" onclick="toggleAuth()">Login</button>
         <div>
-          <div class="dash-title" id="dashPairTitle">AMRO AI Trading Intelligence</div>
+          <div class="dash-title" id="dashPairTitle">AMRO ENGIN AI Trading Intelligence</div>
           <div id="dashSubtitle">—</div>
         </div>
       </div>
@@ -2442,7 +2442,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
     </section>
 
     <footer class="mc-footer" id="mcFooter">
-      <span>AMRO v2.1.0</span>
+      <span>AMRO ENGIN v2.1.0</span>
       <span class="mc-footer-center" id="mcFooterMeta">—</span>
       <span class="mc-footer-ops"><span class="mc-ops-dot" aria-hidden="true"></span> System operational</span>
     </footer>
@@ -2539,7 +2539,7 @@ function setAuthTab(mode) {
   loginTab?.classList.toggle('active', authModalMode === 'login');
   confirmWrap?.classList.toggle('hidden', authModalMode !== 'signup');
   if (submitBtn) submitBtn.textContent = authModalMode === 'signup' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ';
-  if (title) title.textContent = authModalMode === 'signup' ? 'สมัครใช้งาน AMRO' : 'เข้าสู่ระบบ';
+  if (title) title.textContent = authModalMode === 'signup' ? 'สมัครใช้งาน AMRO ENGIN' : 'เข้าสู่ระบบ';
   if (sub) {
     sub.textContent = authModalMode === 'signup'
       ? 'ใช้อีเมลของคุณ ระบบจะส่งลิงก์ยืนยัน — กดลิงก์ในเมลก่อนเข้า Dashboard'

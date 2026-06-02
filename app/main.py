@@ -14,7 +14,7 @@ from app.api import signals, payments, candles, pipeline, ea_bridge
 # ── App Init ─────────────────────────────────────────────────────────────────
 
 app = FastAPI(
-    title="AMRO — AI Trading Intelligence",
+    title="AMRO ENGIN — AI Trading Intelligence",
     description="Market Behavior Intelligence & Audit Engine",
     version="0.1.0",
     docs_url="/docs" if settings.APP_ENV == "development" else None,
