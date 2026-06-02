@@ -2455,7 +2455,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
 // ── Config ──────────────────────────────────────────────
 // Same host as the page — avoids localhost ↔ 127.0.0.1 CORS mismatches
 const API_URL = window.location.origin;
-/** Local dev: :8090. Production: use same-origin PB via nginx proxy on amroai. */
+/** Local dev: PocketBase on :8090. Production: PocketBase hosted on amropb subdomain. */
 function resolvePocketBaseUrl() {
   const host = window.location.hostname;
   const port = window.location.port;
@@ -2464,9 +2464,7 @@ function resolvePocketBaseUrl() {
       return `${window.location.protocol}//${host}:8090`;
     }
   }
-  // On production, keep PocketBase auth on the same origin to avoid
-  // Edge/Tracking-prevention cross-site popup/realtime issues.
-  return window.location.origin;
+  return `${window.location.protocol}//amropb.duckdns.org`;
 }
 const PB_URL = resolvePocketBaseUrl();
 
@@ -2702,9 +2700,23 @@ async function completeOAuth2IfNeeded() {
   if (!q.has('code') && !hash.includes('code=')) return false;
   try {
     showLoading('กำลังเข้าสู่ระบบ...');
-    const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' });
+    // Complete OAuth without popup/realtime by exchanging the code.
+    const code = q.get('code') || '';
+    const state = q.get('state') || '';
+    const verifier = sessionStorage.getItem('amro_oauth_verifier_google') || '';
+    const redirectUrl = `${window.location.origin}/api/oauth2-redirect`;
+    if (!code || !verifier) {
+      throw new Error('OAuth callback missing code/verifier');
+    }
+    const authData = await pb.collection('users').authWithOAuth2Code(
+      'google',
+      code,
+      verifier,
+      redirectUrl
+    );
     state.user = authData.record;
     sessionStorage.removeItem(TRIAL_GUEST_KEY);
+    sessionStorage.removeItem('amro_oauth_verifier_google');
     state.tier = 'subscription';
     window.history.replaceState({}, '', oauthReturnUrl());
     await afterLogin();
@@ -2729,29 +2741,21 @@ async function loginWithGoogle() {
       return;
     }
     showLoading('กำลังไปหน้า Google...');
-    const popupFeatures = (() => {
-      const w = Math.min(1024, window.innerWidth || 1024);
-      const h = Math.min(768, window.innerHeight || 768);
-      const left = Math.max(0, ((window.innerWidth || w) - w) / 2);
-      const top = Math.max(0, ((window.innerHeight || h) - h) / 2);
-      return `width=${w},height=${h},top=${top},left=${left},resizable,menubar=no`;
-    })();
-    const timeout = setTimeout(() => {
-      hideLoading();
-      showToast('⏳ กำลังรอหน้า Google นานเกินไป — ตรวจว่าอนุญาต Pop-ups/Redirects สำหรับ amroai และ amropb แล้ว', 'error');
-    }, 25000);
-    await pb.collection('users').authWithOAuth2({
-      provider: 'google',
-      urlCallback: (url) => {
-        clearTimeout(timeout);
-        const w = window.open(url, 'amro_oauth', popupFeatures);
-        if (!w) throw new Error('Popup ถูกบล็อก — โปรดอนุญาต Pop-ups/Redirects สำหรับเว็บนี้');
-        try { w.focus(); } catch {}
-        // Popup opened successfully — don't keep the page blocked.
-        hideLoading();
-      },
-    });
-    clearTimeout(timeout);
+    const redirectUrl = `${window.location.origin}/api/oauth2-redirect`;
+    const methods = await pb.collection('users').listAuthMethods();
+    const google = (methods?.authProviders || []).find(p => p?.name === 'google');
+    if (!google?.authUrl || !google?.codeVerifier) throw new Error('Google provider missing');
+    sessionStorage.setItem('amro_oauth_verifier_google', google.codeVerifier);
+    // Build the provider auth URL similarly to the JS SDK:
+    // provider.authUrl + redirectUrl, with state and scopes as query params.
+    const stateParam = (crypto?.randomUUID?.() || String(Date.now()));
+    const url = new URL(google.authUrl + redirectUrl);
+    url.searchParams.set('state', stateParam);
+    if (Array.isArray(google.scopes) && google.scopes.length) {
+      url.searchParams.set('scope', google.scopes.join(' '));
+    }
+    // Full page redirect (stable on Edge, avoids popup/realtime).
+    window.location.href = url.toString();
   } catch (err) {
     hideLoading();
     console.error(err);
