@@ -2686,30 +2686,58 @@ async function enterTrialDashboard() {
   showToast('✅ Web Trial — ใช้ Dashboard ได้โดยไม่ต้อง Login (Google Login ต้องตั้ง PocketBase ก่อน)', 'success');
 }
 
+function oauthReturnUrl() {
+  const u = new URL(window.location.href);
+  ['code', 'state', 'provider'].forEach((k) => u.searchParams.delete(k));
+  u.hash = '';
+  return u.toString();
+}
+
+async function completeOAuth2IfNeeded() {
+  if (!pb || pb.authStore.isValid) return false;
+  const q = new URLSearchParams(window.location.search);
+  const hash = window.location.hash || '';
+  if (!q.has('code') && !hash.includes('code=')) return false;
+  try {
+    showLoading('กำลังเข้าสู่ระบบ...');
+    const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' });
+    state.user = authData.record;
+    sessionStorage.removeItem(TRIAL_GUEST_KEY);
+    state.tier = 'subscription';
+    window.history.replaceState({}, '', oauthReturnUrl());
+    await afterLogin();
+    return true;
+  } catch (err) {
+    hideLoading();
+    window.history.replaceState({}, '', oauthReturnUrl());
+    showToast('❌ Google Login: ' + (err.message || 'ล้มเหลว'), 'error');
+    return false;
+  }
+}
+
 async function loginWithGoogle() {
   try {
     if (!pb) {
       showToast('❌ ไม่สามารถโหลดระบบ Login (PocketBase SDK) — ใช้ปุ่มทดลอง Dashboard แทน', 'error');
       return;
     }
+    if (await completeOAuth2IfNeeded()) return;
     if (!(await pocketBaseReachable())) {
       showToast('❌ PocketBase ยังไม่พร้อม — กด "ทดลอง Dashboard (ไม่ต้อง Login)" แทน', 'error');
       return;
     }
-    showLoading('กำลังเชื่อมต่อ Google...');
-    const authData = await pb.collection('users').authWithOAuth2({
+    showLoading('กำลังไปหน้า Google...');
+    await pb.collection('users').authWithOAuth2({
       provider: 'google',
+      redirectUrl: oauthReturnUrl(),
+      urlCallback: (url) => {
+        window.location.href = url;
+      },
     });
-    state.user = authData.record;
-    sessionStorage.removeItem(TRIAL_GUEST_KEY);
-    // Membership system disabled: login grants access.
-    state.tier = 'subscription';
-    await afterLogin();
   } catch (err) {
     hideLoading();
     console.error(err);
-    const hint = ' (ลองปุ่มทดลอง Dashboard หรือตั้ง PocketBase + Google OAuth)';
-    showToast('❌ Login ล้มเหลว: ' + (err.message || 'ลองใหม่อีกครั้ง') + hint, 'error');
+    showToast('❌ Login ล้มเหลว: ' + (err.message || 'ลองใหม่อีกครั้ง'), 'error');
   }
 }
 
@@ -4312,7 +4340,7 @@ window.calcPosition = calcPosition;
 // ── Init ─────────────────────────────────────────────────
 checkPaymentSuccess();
 handleEmailVerifyFromUrl();
-checkSession();
+completeOAuth2IfNeeded().then(() => checkSession());
 if (new URLSearchParams(window.location.search).get('trial') === '1' && !state.user) {
   enterTrialDashboard();
 }
