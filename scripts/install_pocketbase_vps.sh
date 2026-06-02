@@ -33,6 +33,7 @@ PUBLIC_IP="$(detect_public_ip)"
 PUBLIC_ORIGIN="${PUBLIC_ORIGIN:-http://${PUBLIC_IP}}"
 PB_PUBLIC_URL="${PUBLIC_ORIGIN}/pb"
 
+download_pocketbase() {
   apt-get install -y -qq unzip curl 2>/dev/null || true
   if [[ -x "${PB_BIN}" ]]; then
     echo "==> PocketBase binary already present"
