@@ -2733,10 +2733,6 @@ async function loginWithGoogle() {
     showLoading('กำลังไปหน้า Google...');
     await pb.collection('users').authWithOAuth2({
       provider: 'google',
-      redirectUrl: oauthReturnUrl(),
-      urlCallback: (url) => {
-        window.location.href = url;
-      },
     });
   } catch (err) {
     hideLoading();
