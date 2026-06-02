@@ -2052,7 +2052,6 @@ body.shell-dashboard .dash-status-group { display:none !important; }
     <div class="hero-cta">
       <button class="btn btn-primary" style="font-size:15px;padding:12px 28px;" onclick="openAuthModal('signup')">เริ่มใช้งานฟรี — สมัครด้วยอีเมล</button>
       <button class="btn btn-outline" style="font-size:15px;padding:12px 28px;" onclick="loginWithGoogle()">Sign in with Google</button>
-      <button class="btn btn-outline" style="font-size:15px;padding:12px 28px;" onclick="enterTrialDashboard()">ทดลอง Dashboard (ไม่ต้อง Login)</button>
       <button class="btn btn-outline" style="font-size:15px;padding:12px 28px;" onclick="scrollToPricing()">ดูแผนราคา</button>
     </div>
   </div>
@@ -4340,7 +4339,6 @@ window.closeAuthModal = closeAuthModal;
 window.submitEmailAuth = submitEmailAuth;
 window.resendVerificationEmail = resendVerificationEmail;
 window.setAuthTab = setAuthTab;
-window.enterTrialDashboard = enterTrialDashboard;
 window.logout = logout;
 window.toggleAuth = toggleAuth;
 window.goHome = goHome;
@@ -4359,9 +4357,6 @@ window.calcPosition = calcPosition;
 checkPaymentSuccess();
 handleEmailVerifyFromUrl();
 completeOAuth2IfNeeded().then(() => checkSession());
-if (new URLSearchParams(window.location.search).get('trial') === '1' && !state.user) {
-  enterTrialDashboard();
-}
 if (document.getElementById('pageDashboard')?.classList.contains('active')) {
   document.body.classList.add('shell-dashboard');
   if (!state.user) loadSignal();
