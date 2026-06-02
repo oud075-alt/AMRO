@@ -2456,7 +2456,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
 // ── Config ──────────────────────────────────────────────
 // Same host as the page — avoids localhost ↔ 127.0.0.1 CORS mismatches
 const API_URL = window.location.origin;
-/** Local dev: PocketBase on :8090. Production VPS: nginx proxy at /pb */
+/** Local dev: :8090. Production: dedicated PB host (amropb) or /pb proxy on IP */
 function resolvePocketBaseUrl() {
   const host = window.location.hostname;
   const port = window.location.port;
@@ -2464,6 +2464,9 @@ function resolvePocketBaseUrl() {
     if (!port || port === '8000') {
       return `${window.location.protocol}//${host}:8090`;
     }
+  }
+  if (host === 'amroai.duckdns.org' || host === '172.105.122.179') {
+    return `${window.location.protocol}//amropb.duckdns.org`;
   }
   return `${window.location.origin}/pb`;
 }
