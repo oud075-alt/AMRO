@@ -126,28 +126,32 @@ This launch is web-only:
 
 ## 8. Google Login (PocketBase on VPS)
 
-Trial mode (`?trial=1`) works without login. For **Sign in with Google**:
+Trial mode (`?trial=1`) works without login.
+
+### End users (email + verify)
+
+Each visitor signs up on the **main site** (`http://YOUR_SERVER_IP/`) with their own email. PocketBase sends a verification link; after they click it, they can log in. This is **not** the Superuser admin at `/pb/_/`.
+
+**One-time server setup:**
 
 ```bash
 cd /opt/amro
 git pull
-bash scripts/install_pocketbase_vps.sh
+systemctl restart pocketbase
 systemctl restart amro
 ```
 
-Verify:
+**PocketBase admin** (`http://YOUR_SERVER_IP/pb/_/` — for you only):
 
-```bash
-curl -s http://127.0.0.1/pb/api/health
-```
-
-One-time PocketBase admin setup (browser):
-
-1. Open `http://YOUR_SERVER_IP/pb/_/` and create a superuser matching `POCKETBASE_ADMIN_EMAIL` / `POCKETBASE_ADMIN_PASSWORD` in `.env`.
+1. Superuser = your admin account (not end users).
 2. **Settings → Application** → App URL = `http://YOUR_SERVER_IP/pb`
-3. **Settings → Auth providers → Google** — add OAuth Client ID and Secret from Google Cloud Console.
-4. In Google Console, authorized redirect URI: `http://YOUR_SERVER_IP/pb/api/oauth2-redirect`
+3. **Settings → Mail settings** → SMTP (Gmail/SendGrid/etc.) so verification emails can be sent.
+4. **Collections → users** → Auth options: Password auth ON, Auth rule `verified = true` (applied via `pb_migrations` on restart).
 
-The frontend uses `/pb` on production (not port 8090). Backend `.env` should use `POCKETBASE_URL=http://127.0.0.1:8090`.
+**Optional Google OAuth** (Settings → Auth providers → Google):
 
-**Do not re-run full `deploy_vps.sh` on a configured server** — it is safe for fresh installs only; use `install_pocketbase_vps.sh` on existing VPS to avoid touching `.env`.
+- Redirect URI: `http://YOUR_SERVER_IP/pb/api/oauth2-redirect`
+
+Backend `.env`: `POCKETBASE_URL=http://127.0.0.1:8090`
+
+**Do not re-run full `deploy_vps.sh`** on a configured server — use `install_pocketbase_vps.sh` only.

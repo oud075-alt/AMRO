@@ -118,6 +118,22 @@ button { cursor:pointer; font-family:inherit; }
 .btn-google { display:flex; align-items:center; gap:8px; background:white; color:#1a1a1a; padding:8px 16px; border-radius:8px; border:none; font-size:13px; font-weight:600; }
 .btn-google svg { width:18px; height:18px; flex-shrink:0; }
 
+/* Email auth modal */
+.auth-modal-overlay { position:fixed; inset:0; background:rgba(10,14,26,.85); z-index:9500; display:none; align-items:center; justify-content:center; padding:16px; }
+.auth-modal-overlay.show { display:flex; }
+.auth-modal { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:28px 24px; width:100%; max-width:400px; box-shadow:0 24px 48px rgba(0,0,0,.45); }
+.auth-modal h3 { margin:0 0 6px; font-size:18px; }
+.auth-modal .auth-sub { color:var(--muted); font-size:13px; margin-bottom:18px; line-height:1.5; }
+.auth-tabs { display:flex; gap:8px; margin-bottom:16px; }
+.auth-tab { flex:1; padding:8px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer; }
+.auth-tab.active { background:var(--blue-dim); color:#93c5fd; border-color:#2563eb; }
+.auth-field { margin-bottom:12px; }
+.auth-field label { display:block; font-size:12px; color:var(--muted); margin-bottom:4px; }
+.auth-field input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; box-sizing:border-box; }
+.auth-actions { display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+.auth-link { background:none; border:none; color:#93c5fd; font-size:12px; cursor:pointer; text-align:center; padding:4px; }
+.auth-divider { text-align:center; color:var(--muted); font-size:12px; margin:12px 0; }
+
 /* Toast */
 .toast { position:fixed; bottom:24px; right:24px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 18px; font-size:13px; z-index:9999; transform:translateY(80px); opacity:0; transition:all .3s; max-width:320px; }
 .toast.show { transform:translateY(0); opacity:1; }
@@ -1964,6 +1980,39 @@ body.shell-dashboard .dash-status-group { display:none !important; }
 <body>
 
 <!-- Loading Overlay -->
+<div class="auth-modal-overlay" id="authModalOverlay" onclick="if(event.target===this)closeAuthModal()">
+  <div class="auth-modal" role="dialog" aria-labelledby="authModalTitle">
+    <h3 id="authModalTitle">เข้าสู่ระบบ AMRO</h3>
+    <p class="auth-sub" id="authModalSub">สมัครด้วยอีเมลของคุณ แล้วเปิดลิงก์ยืนยันในกล่องจดหมายก่อนใช้งาน</p>
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab" id="authTabSignup" onclick="setAuthTab('signup')">สมัครสมาชิก</button>
+      <button type="button" class="auth-tab" id="authTabLogin" onclick="setAuthTab('login')">เข้าสู่ระบบ</button>
+    </div>
+    <div class="auth-field">
+      <label for="authEmail">อีเมล</label>
+      <input type="email" id="authEmail" autocomplete="email" placeholder="you@example.com">
+    </div>
+    <div class="auth-field">
+      <label for="authPassword">รหัสผ่าน (อย่างน้อย 8 ตัว)</label>
+      <input type="password" id="authPassword" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <div class="auth-field hidden" id="authPasswordConfirmWrap">
+      <label for="authPasswordConfirm">ยืนยันรหัสผ่าน</label>
+      <input type="password" id="authPasswordConfirm" autocomplete="new-password" placeholder="••••••••">
+    </div>
+    <div class="auth-actions">
+      <button type="button" class="btn btn-primary" id="authSubmitBtn" onclick="submitEmailAuth()">สมัครสมาชิก</button>
+      <button type="button" class="auth-link" id="authResendBtn" onclick="resendVerificationEmail()">ส่งอีเมลยืนยันอีกครั้ง</button>
+      <div class="auth-divider">หรือ</div>
+      <button type="button" class="btn-google" style="width:100%;justify-content:center" onclick="loginWithGoogle()">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Sign in with Google
+      </button>
+      <button type="button" class="auth-link" onclick="closeAuthModal()">ปิด</button>
+    </div>
+  </div>
+</div>
+
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
   <div id="loadingText" style="color:var(--muted);font-size:13px;">กำลังโหลด...</div>
@@ -1985,7 +2034,8 @@ body.shell-dashboard .dash-status-group { display:none !important; }
     <button class="mobile-sidebar-btn" id="mobileSidebarBtn" onclick="toggleSidebarMobile()" style="display:none">☰ Pairs</button>
     <span id="tierBadge" class="nav-tier"></span>
     <button class="btn btn-outline" id="btnUpgrade" onclick="startCheckout()" style="display:none">⬆ Upgrade</button>
-    <button class="btn-google" id="btnLogin" onclick="loginWithGoogle()">
+    <button class="btn btn-primary" id="btnLoginNav" onclick="openAuthModal('login')">เข้าสู่ระบบ / สมัคร</button>
+    <button class="btn-google hidden" id="btnLoginGoogle" onclick="loginWithGoogle()">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
       Sign in with Google
     </button>
@@ -2000,7 +2050,8 @@ body.shell-dashboard .dash-status-group { display:none !important; }
     <h1>ระบบ <span>คัดกรองความจริง</span><br>ของตลาดการเงิน</h1>
     <p>AMRO ไม่ใช่แค่ indicator แต่คือระบบที่บอกได้ว่า <strong>signal นี้เชื่อได้แค่ไหน</strong><br>และตลาดอยู่ใน <strong>state ไหน</strong> ก่อนที่คุณจะกด Buy หรือ Sell</p>
     <div class="hero-cta">
-      <button class="btn btn-primary" style="font-size:15px;padding:12px 28px;" onclick="loginWithGoogle()">เริ่มใช้งานฟรี — Sign in with Google</button>
+      <button class="btn btn-primary" style="font-size:15px;padding:12px 28px;" onclick="openAuthModal('signup')">เริ่มใช้งานฟรี — สมัครด้วยอีเมล</button>
+      <button class="btn btn-outline" style="font-size:15px;padding:12px 28px;" onclick="loginWithGoogle()">Sign in with Google</button>
       <button class="btn btn-outline" style="font-size:15px;padding:12px 28px;" onclick="enterTrialDashboard()">ทดลอง Dashboard (ไม่ต้อง Login)</button>
       <button class="btn btn-outline" style="font-size:15px;padding:12px 28px;" onclick="scrollToPricing()">ดูแผนราคา</button>
     </div>
@@ -2026,7 +2077,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
           <li class="locked">Confidence Score</li><li class="locked">Regime Detection</li>
           <li class="locked">Audit Agent</li><li class="locked">PDF Report</li>
         </ul>
-        <button class="btn btn-outline" style="width:100%" onclick="loginWithGoogle()">เริ่มใช้งาน</button>
+        <button class="btn btn-outline" style="width:100%" onclick="openAuthModal('signup')">เริ่มใช้งาน</button>
       </div>
       <div class="price-card featured">
         <div class="price-badge">แนะนำ</div>
@@ -2038,7 +2089,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
           <li>Confidence Score เต็ม</li><li>Regime Detection + คำแนะนำ</li>
           <li>Audit Agent (Claude AI)</li><li>PDF Report</li><li class="locked">API Access</li>
         </ul>
-        <button class="btn btn-primary" style="width:100%" onclick="loginWithGoogle()">เริ่มใช้งานฟรี (Login)</button>
+        <button class="btn btn-primary" style="width:100%" onclick="openAuthModal('signup')">เริ่มใช้งานฟรี (สมัครอีเมล)</button>
       </div>
       <div class="price-card">
         <div class="price-tier">Premium</div>
@@ -2167,7 +2218,7 @@ body.shell-dashboard .dash-status-group { display:none !important; }
         <h3>🔓 Login เพื่อใช้งานฟรี</h3>
         <p>ระบบสมาชิกถูกปิดแล้ว — ใช้งาน Audit Agent ได้ฟรีหลัง Login</p>
       </div>
-      <button class="btn-upgrade" onclick="loginWithGoogle()">Login</button>
+      <button class="btn-upgrade" onclick="openAuthModal('login')">Login</button>
     </div>
 
     <!-- ══ Execution decision strip ═══════════════════════ -->
@@ -2465,6 +2516,147 @@ function scrollToPricing() {
 
 // ── Auth ────────────────────────────────────────────────
 const TRIAL_GUEST_KEY = 'amro_trial_guest';
+let authModalMode = 'signup';
+
+function openAuthModal(mode = 'signup') {
+  setAuthTab(mode);
+  document.getElementById('authModalOverlay')?.classList.add('show');
+  document.getElementById('authEmail')?.focus();
+}
+
+function closeAuthModal() {
+  document.getElementById('authModalOverlay')?.classList.remove('show');
+}
+
+function setAuthTab(mode) {
+  authModalMode = mode === 'login' ? 'login' : 'signup';
+  const signupTab = document.getElementById('authTabSignup');
+  const loginTab = document.getElementById('authTabLogin');
+  const confirmWrap = document.getElementById('authPasswordConfirmWrap');
+  const submitBtn = document.getElementById('authSubmitBtn');
+  const title = document.getElementById('authModalTitle');
+  const sub = document.getElementById('authModalSub');
+  signupTab?.classList.toggle('active', authModalMode === 'signup');
+  loginTab?.classList.toggle('active', authModalMode === 'login');
+  confirmWrap?.classList.toggle('hidden', authModalMode !== 'signup');
+  if (submitBtn) submitBtn.textContent = authModalMode === 'signup' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ';
+  if (title) title.textContent = authModalMode === 'signup' ? 'สมัครใช้งาน AMRO' : 'เข้าสู่ระบบ';
+  if (sub) {
+    sub.textContent = authModalMode === 'signup'
+      ? 'ใช้อีเมลของคุณ ระบบจะส่งลิงก์ยืนยัน — กดลิงก์ในเมลก่อนเข้า Dashboard'
+      : 'เข้าสู่ระบบด้วยอีเมลที่ยืนยันแล้ว';
+  }
+}
+
+function authFormValues() {
+  const email = (document.getElementById('authEmail')?.value || '').trim().toLowerCase();
+  const password = document.getElementById('authPassword')?.value || '';
+  const passwordConfirm = document.getElementById('authPasswordConfirm')?.value || '';
+  return { email, password, passwordConfirm };
+}
+
+async function registerWithEmail() {
+  const { email, password, passwordConfirm } = authFormValues();
+  if (!email || !password) {
+    showToast('❌ กรุณากรอกอีเมลและรหัสผ่าน', 'error');
+    return;
+  }
+  if (password.length < 8) {
+    showToast('❌ รหัสผ่านต้องมีอย่างน้อย 8 ตัว', 'error');
+    return;
+  }
+  if (password !== passwordConfirm) {
+    showToast('❌ รหัสผ่านไม่ตรงกัน', 'error');
+    return;
+  }
+  if (!(await pocketBaseReachable())) {
+    showToast('❌ ระบบสมาชิกยังไม่พร้อม — ลองใหม่ภายหลัง', 'error');
+    return;
+  }
+  showLoading('กำลังสมัครสมาชิก...');
+  try {
+    await pb.collection('users').create({
+      email,
+      password,
+      passwordConfirm,
+      emailVisibility: true,
+    });
+    try {
+      await pb.collection('users').requestVerification(email);
+    } catch (_) { /* PB may auto-send on create */ }
+    hideLoading();
+    closeAuthModal();
+    showToast('📧 สมัครสำเร็จ — เปิดอีเมลแล้วกดลิงก์ยืนยัน จากนั้นกลับมาเข้าสู่ระบบ', 'success');
+    setAuthTab('login');
+    openAuthModal('login');
+  } catch (err) {
+    hideLoading();
+    showToast('❌ สมัครไม่สำเร็จ: ' + (err.message || 'ลองใหม่'), 'error');
+  }
+}
+
+async function loginWithEmail() {
+  const { email, password } = authFormValues();
+  if (!email || !password) {
+    showToast('❌ กรุณากรอกอีเมลและรหัสผ่าน', 'error');
+    return;
+  }
+  if (!(await pocketBaseReachable())) {
+    showToast('❌ ระบบสมาชิกยังไม่พร้อม', 'error');
+    return;
+  }
+  showLoading('กำลังเข้าสู่ระบบ...');
+  try {
+    const authData = await pb.collection('users').authWithPassword(email, password);
+    state.user = authData.record;
+    sessionStorage.removeItem(TRIAL_GUEST_KEY);
+    state.tier = 'subscription';
+    closeAuthModal();
+    await afterLogin();
+  } catch (err) {
+    hideLoading();
+    const msg = err.message || '';
+    if (/verified|verification/i.test(msg)) {
+      showToast('📧 กรุณายืนยันอีเมลก่อน — กด "ส่งอีเมลยืนยันอีกครั้ง"', 'error');
+    } else {
+      showToast('❌ เข้าสู่ระบบไม่สำเร็จ: ' + (msg || 'ตรวจอีเมล/รหัสผ่าน'), 'error');
+    }
+  }
+}
+
+async function submitEmailAuth() {
+  if (authModalMode === 'signup') await registerWithEmail();
+  else await loginWithEmail();
+}
+
+async function resendVerificationEmail() {
+  const { email } = authFormValues();
+  if (!email) {
+    showToast('❌ กรอกอีเมลก่อน', 'error');
+    return;
+  }
+  if (!pb) return;
+  try {
+    await pb.collection('users').requestVerification(email);
+    showToast('📧 ส่งอีเมลยืนยันแล้ว — ตรวจกล่องจดหมาย (และ Spam)', 'success');
+  } catch (err) {
+    showToast('❌ ส่งอีเมลไม่สำเร็จ: ' + (err.message || ''), 'error');
+  }
+}
+
+async function handleEmailVerifyFromUrl() {
+  const token = new URLSearchParams(window.location.search).get('verify');
+  if (!token || !pb) return;
+  try {
+    await pb.collection('users').confirmVerification(token);
+    const clean = window.location.pathname + window.location.hash;
+    history.replaceState({}, '', clean);
+    showToast('✅ ยืนยันอีเมลสำเร็จ — เข้าสู่ระบบได้แล้ว', 'success');
+    openAuthModal('login');
+  } catch (err) {
+    showToast('❌ ลิงก์ยืนยันไม่ถูกต้องหรือหมดอายุ', 'error');
+  }
+}
 
 function isTrialGuestSession() {
   return sessionStorage.getItem(TRIAL_GUEST_KEY) === '1';
@@ -2538,12 +2730,12 @@ function logout() {
 
 function toggleAuth() {
   if (state.user) logout();
-  else loginWithGoogle();
+  else openAuthModal('login');
 }
 
 function updateNav() {
   const badge  = document.getElementById('tierBadge');
-  const login  = document.getElementById('btnLogin');
+  const login  = document.getElementById('btnLoginNav');
   const logout = document.getElementById('btnLogout');
   const upgrade= document.getElementById('btnUpgrade');
   const upBanner = document.getElementById('upgradeBanner');
@@ -2593,7 +2785,7 @@ function checkSession() {
 
 // ── Payments ────────────────────────────────────────────
 async function startCheckout() {
-  if (!state.user) { loginWithGoogle(); return; }
+  if (!state.user) { openAuthModal('login'); return; }
   showToast('✅ ระบบสมาชิกถูกปิดแล้ว — ใช้งานได้ฟรีหลัง Login', 'success');
 }
 
@@ -4094,6 +4286,11 @@ setInterval(() => {
 
 // ── Global onclick handlers (inline HTML) ────────────────
 window.loginWithGoogle = loginWithGoogle;
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+window.submitEmailAuth = submitEmailAuth;
+window.resendVerificationEmail = resendVerificationEmail;
+window.setAuthTab = setAuthTab;
 window.enterTrialDashboard = enterTrialDashboard;
 window.logout = logout;
 window.toggleAuth = toggleAuth;
@@ -4111,6 +4308,7 @@ window.calcPosition = calcPosition;
 
 // ── Init ─────────────────────────────────────────────────
 checkPaymentSuccess();
+handleEmailVerifyFromUrl();
 checkSession();
 if (new URLSearchParams(window.location.search).get('trial') === '1' && !state.user) {
   enterTrialDashboard();
