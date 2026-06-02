@@ -31,7 +31,7 @@ PUBLIC_ORIGIN="${PUBLIC_ORIGIN:-http://${PUBLIC_IP}}"
 echo "==> Installing system packages..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq python3 python3-venv python3-pip git nginx curl ufw
+apt-get install -y -qq python3 python3-venv python3-pip git nginx curl ufw unzip
 
 echo "==> Cloning/updating AMRO at ${APP_DIR}..."
 if [[ -d "${APP_DIR}/.git" ]]; then
@@ -59,6 +59,7 @@ if [[ ! -f .env ]]; then
   sed -i "s|^APP_SECRET_KEY=.*|APP_SECRET_KEY=${SECRET}|" .env
   sed -i "s|^FRONTEND_URL=.*|FRONTEND_URL=${PUBLIC_ORIGIN}|" .env
   sed -i "s|^WEBHOOK_BASE_URL=.*|WEBHOOK_BASE_URL=${PUBLIC_ORIGIN}|" .env
+  sed -i "s|^POCKETBASE_URL=.*|POCKETBASE_URL=http://127.0.0.1:8090|" .env
   echo ""
   echo "IMPORTANT: Edit API keys before production use:"
   echo "  nano ${APP_DIR}/.env"
@@ -87,31 +88,12 @@ systemctl daemon-reload
 systemctl enable "${SERVICE_NAME}"
 systemctl restart "${SERVICE_NAME}"
 
-echo "==> Nginx reverse proxy..."
-cat > /etc/nginx/sites-available/amro <<EOF
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    server_name ${PUBLIC_IP} _;
-
-    client_max_body_size 20m;
-
-    location / {
-        proxy_pass http://${BIND_HOST}:${BIND_PORT};
-        proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_read_timeout 300s;
-    }
-}
-EOF
-
-ln -sf /etc/nginx/sites-available/amro /etc/nginx/sites-enabled/amro
-rm -f /etc/nginx/sites-enabled/default
-nginx -t
-systemctl reload nginx
+echo "==> PocketBase (login) + Nginx..."
+if [[ -f "${APP_DIR}/scripts/install_pocketbase_vps.sh" ]]; then
+  PUBLIC_ORIGIN="${PUBLIC_ORIGIN}" APP_DIR="${APP_DIR}" bash "${APP_DIR}/scripts/install_pocketbase_vps.sh"
+else
+  echo "WARN: install_pocketbase_vps.sh not found — skipping PocketBase"
+fi
 
 echo "==> UFW firewall..."
 ufw allow OpenSSH >/dev/null 2>&1 || true

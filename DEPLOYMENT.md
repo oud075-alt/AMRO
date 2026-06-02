@@ -123,3 +123,31 @@ This launch is web-only:
 - Brain-1/2/3 runtime evaluation: enabled.
 - EA live execution: disabled/not part of public trial.
 - EA bridge: permission/fail-closed state only.
+
+## 8. Google Login (PocketBase on VPS)
+
+Trial mode (`?trial=1`) works without login. For **Sign in with Google**:
+
+```bash
+cd /opt/amro
+git pull
+bash scripts/install_pocketbase_vps.sh
+systemctl restart amro
+```
+
+Verify:
+
+```bash
+curl -s http://127.0.0.1/pb/api/health
+```
+
+One-time PocketBase admin setup (browser):
+
+1. Open `http://YOUR_SERVER_IP/pb/_/` and create a superuser matching `POCKETBASE_ADMIN_EMAIL` / `POCKETBASE_ADMIN_PASSWORD` in `.env`.
+2. **Settings → Application** → App URL = `http://YOUR_SERVER_IP/pb`
+3. **Settings → Auth providers → Google** — add OAuth Client ID and Secret from Google Cloud Console.
+4. In Google Console, authorized redirect URI: `http://YOUR_SERVER_IP/pb/api/oauth2-redirect`
+
+The frontend uses `/pb` on production (not port 8090). Backend `.env` should use `POCKETBASE_URL=http://127.0.0.1:8090`.
+
+**Do not re-run full `deploy_vps.sh` on a configured server** — it is safe for fresh installs only; use `install_pocketbase_vps.sh` on existing VPS to avoid touching `.env`.

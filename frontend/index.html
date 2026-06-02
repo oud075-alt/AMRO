@@ -2405,7 +2405,18 @@ body.shell-dashboard .dash-status-group { display:none !important; }
 // ── Config ──────────────────────────────────────────────
 // Same host as the page — avoids localhost ↔ 127.0.0.1 CORS mismatches
 const API_URL = window.location.origin;
-const PB_URL  = `${window.location.protocol}//${window.location.hostname}:8090`;
+/** Local dev: PocketBase on :8090. Production VPS: nginx proxy at /pb */
+function resolvePocketBaseUrl() {
+  const host = window.location.hostname;
+  const port = window.location.port;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    if (!port || port === '8000') {
+      return `${window.location.protocol}//${host}:8090`;
+    }
+  }
+  return `${window.location.origin}/pb`;
+}
+const PB_URL = resolvePocketBaseUrl();
 
 // ── PocketBase ──────────────────────────────────────────
 const pb = window.PocketBase
@@ -4050,7 +4061,7 @@ function renderPipeline(d) {
   set('p3Verdict', d.governance_decision?.verdict || '—');
   set('p3Approved', d.approved ? 'YES' : 'NO');
   set('p3Limit', d.position_limit !== undefined ? String(d.position_limit) : '—');
-  set('p3Reason', (d.brain3_judge?.judge_summary || d.governance_reason || d.governance?.reason || '—').slice(0, 120));
+  set('p3Reason', (d.brain3?.judge?.judge_summary || d.governance_reason || d.governance?.reason || '—').slice(0, 120));
   set('p3Risk', d.risk_mode || '—');
 
   const aiVal = document.getElementById('aiConsensusVal');
