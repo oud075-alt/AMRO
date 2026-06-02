@@ -2687,10 +2687,14 @@ async function enterTrialDashboard() {
 }
 
 function oauthReturnUrl() {
+  const host = window.location.hostname;
+  if (host === 'amroai.duckdns.org' || host === '172.105.122.179') {
+    return `${window.location.protocol}//amroai.duckdns.org/`;
+  }
   const u = new URL(window.location.href);
   ['code', 'state', 'provider'].forEach((k) => u.searchParams.delete(k));
   u.hash = '';
-  return u.toString();
+  return u.origin + u.pathname;
 }
 
 async function completeOAuth2IfNeeded() {
