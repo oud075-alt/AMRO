@@ -2702,9 +2702,9 @@ async function completeOAuth2IfNeeded() {
     showLoading('กำลังเข้าสู่ระบบ...');
     // Complete OAuth without popup/realtime by exchanging the code.
     const code = q.get('code') || '';
-    const state = q.get('state') || '';
     const verifier = sessionStorage.getItem('amro_oauth_verifier_google') || '';
-    const redirectUrl = `${window.location.origin}/api/oauth2-redirect`;
+    // Use a normal app path callback to avoid PocketBase /_/ success page + realtime coupling.
+    const redirectUrl = `${window.location.origin}/oauth-callback`;
     if (!code || !verifier) {
       throw new Error('OAuth callback missing code/verifier');
     }
@@ -2741,7 +2741,7 @@ async function loginWithGoogle() {
       return;
     }
     showLoading('กำลังไปหน้า Google...');
-    const redirectUrl = `${window.location.origin}/api/oauth2-redirect`;
+    const redirectUrl = `${window.location.origin}/oauth-callback`;
     const methods = await pb.collection('users').listAuthMethods();
     const google = (methods?.authProviders || []).find(p => p?.name === 'google');
     if (!google?.authUrl || !google?.codeVerifier) throw new Error('Google provider missing');
