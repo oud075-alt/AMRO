@@ -2748,6 +2748,8 @@ async function loginWithGoogle() {
         const w = window.open(url, 'amro_oauth', popupFeatures);
         if (!w) throw new Error('Popup ถูกบล็อก — โปรดอนุญาต Pop-ups/Redirects สำหรับเว็บนี้');
         try { w.focus(); } catch {}
+        // Popup opened successfully — don't keep the page blocked.
+        hideLoading();
       },
     });
     clearTimeout(timeout);
