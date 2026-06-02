@@ -2731,9 +2731,27 @@ async function loginWithGoogle() {
       return;
     }
     showLoading('กำลังไปหน้า Google...');
+    const popupFeatures = (() => {
+      const w = Math.min(1024, window.innerWidth || 1024);
+      const h = Math.min(768, window.innerHeight || 768);
+      const left = Math.max(0, ((window.innerWidth || w) - w) / 2);
+      const top = Math.max(0, ((window.innerHeight || h) - h) / 2);
+      return `width=${w},height=${h},top=${top},left=${left},resizable,menubar=no`;
+    })();
+    const timeout = setTimeout(() => {
+      hideLoading();
+      showToast('⏳ กำลังรอหน้า Google นานเกินไป — ตรวจว่าอนุญาต Pop-ups/Redirects สำหรับ amroai และ amropb แล้ว', 'error');
+    }, 25000);
     await pb.collection('users').authWithOAuth2({
       provider: 'google',
+      urlCallback: (url) => {
+        clearTimeout(timeout);
+        const w = window.open(url, 'amro_oauth', popupFeatures);
+        if (!w) throw new Error('Popup ถูกบล็อก — โปรดอนุญาต Pop-ups/Redirects สำหรับเว็บนี้');
+        try { w.focus(); } catch {}
+      },
     });
+    clearTimeout(timeout);
   } catch (err) {
     hideLoading();
     console.error(err);
