@@ -4,14 +4,14 @@ AMRO SaaS — FastAPI Application Entry Point
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from loguru import logger
 import uvicorn, os
 
 from app.core.config import settings
 from app.api import signals, payments, candles, pipeline, ea_bridge
 
-# ── App Init ─────────────────────────────────────────────────────────────────
+# ── App Init ───────────────────────────────────────────────────────────────────
 
 app = FastAPI(
     title="AMRO ENGIN — AI Trading Intelligence",
@@ -22,7 +22,7 @@ app = FastAPI(
     openapi_url="/openapi.json" if settings.APP_ENV == "development" else None,
 )
 
-# ── CORS ─────────────────────────────────────────────────────────────────────
+# ── CORS ───────────────────────────────────────────────────────────────────────
 
 def _cors_origins() -> list[str]:
     if settings.APP_ENV == "production":
@@ -37,7 +37,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── API Routers ───────────────────────────────────────────────────────────────
+# ── API Routers ────────────────────────────────────────────────────────────────
 
 app.include_router(signals.router)
 app.include_router(payments.router)
@@ -45,7 +45,7 @@ app.include_router(candles.router)
 app.include_router(pipeline.router)
 app.include_router(ea_bridge.router)
 
-# ── Health Check ─────────────────────────────────────────────────────────────
+# ── Health Check ───────────────────────────────────────────────────────────────
 
 @app.get("/health")
 def health():
@@ -54,6 +54,67 @@ def health():
 # ── Frontend (serve last — catches everything else) ───────────────────────────
 
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+MOBILE_FIX_STYLE = """
+<style id="amro-mobile-fix">
+@media (max-width:900px) {
+  .main-content {
+    padding-top: 10px !important;
+  }
+
+  .dash-header {
+    height: auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .dash-header-left {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    align-items: flex-start !important;
+  }
+
+  .dash-title-wrap {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .dash-title {
+    font-size: 15px !important;
+    line-height: 1.08 !important;
+    max-width: 100% !important;
+    word-break: break-word !important;
+  }
+
+  #dashSubtitle {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+  }
+
+  .dash-right {
+    width: 100% !important;
+    justify-content: flex-end !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .dash-mobile-pairs,
+  .dash-mobile-menu,
+  .dash-mobile-logout {
+    flex-shrink: 0 !important;
+  }
+
+  .market-decision-card {
+    margin-top: 8px !important;
+  }
+}
+</style>
+""".strip()
 
 if os.path.isdir(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
@@ -71,12 +132,16 @@ if os.path.isdir(FRONTEND_DIR):
             raise HTTPException(404)
         index = os.path.join(FRONTEND_DIR, "index.html")
         if os.path.exists(index):
-            return FileResponse(index)
+            with open(index, "r", encoding="utf-8") as f:
+                html = f.read()
+            if MOBILE_FIX_STYLE not in html:
+                html = html.replace("</head>", f"{MOBILE_FIX_STYLE}\n</head>", 1)
+            return HTMLResponse(html)
         return {"error": "Frontend not found"}
 else:
     logger.warning("frontend/ not found — only API mode active")
 
-# ── Run ───────────────────────────────────────────────────────────────────────
+# ── Run ────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     logger.info(f"Starting AMRO on {settings.APP_HOST}:{settings.APP_PORT}")
