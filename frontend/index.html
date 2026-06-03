@@ -6,7 +6,7 @@
 <!-- layout: mobile-first v2 -->
 <title>AMRO ENGIN — AI Trading Intelligence</title>
 <!-- PocketBase JS SDK (local first — avoids CDN tracking-prevention blocks) -->
-<script src="vendor/pocketbase.umd.js"></script>
+<script src="/static/vendor/pocketbase.umd.js"></script>
 <script>
 if (!window.PocketBase) {
   document.write('<script src="https://cdn.jsdelivr.net/npm/pocketbase@0.21.3/dist/pocketbase.umd.js"><\/script>');
@@ -1732,6 +1732,7 @@ body.shell-dashboard .loading-overlay { z-index:200; }
   background:rgba(0,0,0,.55); z-index:199;
 }
 .sidebar-overlay.show { display:block; }
+body.shell-dashboard .sidebar-overlay { top:0; }
 
 /* ── Responsive ───────────────────────────────────────── */
 @media (max-width:1279px) {
@@ -1807,9 +1808,20 @@ body.shell-dashboard .loading-overlay { z-index:200; }
   margin:0; padding:0;
   border-bottom:1px solid rgba(255,255,255,0.04);
 }
-.dash-header-left { display:flex; align-items:center; gap:10px; min-width:0; }
+.dash-header-left { display:flex; align-items:center; gap:8px; min-width:0; }
+.dash-title-wrap { min-width:0; flex:1; }
 .dash-mobile-menu { display:none; flex-shrink:0; }
 body.shell-dashboard .dash-mobile-menu { display:flex; }
+.dash-mobile-pairs { display:none; flex-shrink:0; white-space:nowrap; font-size:12px; }
+body.shell-dashboard .dash-mobile-pairs { display:flex; }
+.dash-mobile-logout {
+  display:none; flex-shrink:0;
+  padding:5px 10px; font-size:11px; border-radius:6px;
+}
+body.shell-dashboard .dash-mobile-logout.show { display:inline-flex; }
+@media (min-width:1280px) {
+  body.shell-dashboard .dash-mobile-pairs { display:none !important; }
+}
 .dash-title {
   font-size:22px; font-weight:700; letter-spacing:-.01em;
   color:#e2e8f0; background:none; -webkit-text-fill-color:#e2e8f0;
@@ -2331,13 +2343,15 @@ body.shell-dashboard .dash-status-group { display:none !important; }
 
     <header class="dash-header">
       <div class="dash-header-left">
+        <button class="mobile-sidebar-btn dash-mobile-pairs" id="dashPairsBtn" type="button" onclick="toggleSidebarMobile()" aria-label="เลือกสินทรัพย์">☰ สินทรัพย์</button>
         <button class="mobile-sidebar-btn dash-mobile-menu" id="dashAuthBtn" type="button" onclick="toggleAuth()">Login</button>
-        <div>
+        <div class="dash-title-wrap">
           <div class="dash-title" id="dashPairTitle">AMRO ENGIN AI Trading Intelligence</div>
           <div id="dashSubtitle">—</div>
         </div>
       </div>
       <div class="dash-right">
+        <button class="btn btn-outline dash-mobile-logout" id="dashLogoutBtn" type="button" onclick="logout()">Logout</button>
         <div class="dash-status-group health-widget">
           <div class="health-item"><div class="health-dot ok" id="dotServer"></div><span>Server</span></div>
           <div class="health-item"><div class="health-dot ok" id="dotData"></div><span>Market Data</span></div>
@@ -2932,6 +2946,7 @@ function updateNav() {
   const upgrade= document.getElementById('btnUpgrade');
   const upBanner = document.getElementById('upgradeBanner');
   const dashAuth = document.getElementById('dashAuthBtn');
+  const dashLogout = document.getElementById('dashLogoutBtn');
 
   const mobileBtn = document.getElementById('mobileSidebarBtn');
   if (state.user) {
@@ -2942,15 +2957,17 @@ function updateNav() {
     badge.className = 'nav-tier tier-free';
     upgrade.style.display = 'none';
     if (upBanner) upBanner.style.display = 'none';
-    if (dashAuth) dashAuth.textContent = 'Logout';
-    if (mobileBtn) mobileBtn.style.display = '';  // visible (CSS media query hides on desktop)
+    if (dashAuth) dashAuth.style.display = 'none';
+    if (dashLogout) dashLogout.classList.add('show');
+    if (mobileBtn) mobileBtn.style.display = '';
   } else {
     login.style.display = '';
     logout.classList.add('hidden');
     badge.style.display = 'none';
     upgrade.style.display = 'none';
     if (mobileBtn) mobileBtn.style.display = 'none';
-    if (dashAuth) dashAuth.textContent = 'Login';
+    if (dashAuth) { dashAuth.style.display = ''; dashAuth.textContent = 'Login'; }
+    if (dashLogout) dashLogout.classList.remove('show');
   }
 }
 
