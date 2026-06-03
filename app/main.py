@@ -11,10 +11,10 @@ import uvicorn, os
 from app.core.config import settings
 from app.api import signals, payments, candles, pipeline, ea_bridge
 
-# ── App Init ───────────────────────────────────────────────────────────────────
+# ── App Init ─────────────────────────────────────────────────────────────────
 
 app = FastAPI(
-    title="AMRO ENGIN — AI Trading Intelligence",
+    title="AMRO ENGIN AI",
     description="Market Behavior Intelligence & Audit Engine",
     version="0.1.0",
     docs_url="/docs" if settings.APP_ENV == "development" else None,
@@ -22,7 +22,7 @@ app = FastAPI(
     openapi_url="/openapi.json" if settings.APP_ENV == "development" else None,
 )
 
-# ── CORS ───────────────────────────────────────────────────────────────────────
+# ── CORS ─────────────────────────────────────────────────────────────────────
 
 def _cors_origins() -> list[str]:
     if settings.APP_ENV == "production":
@@ -37,7 +37,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── API Routers ────────────────────────────────────────────────────────────────
+# ── API Routers ───────────────────────────────────────────────────────────────
 
 app.include_router(signals.router)
 app.include_router(payments.router)
@@ -45,7 +45,7 @@ app.include_router(candles.router)
 app.include_router(pipeline.router)
 app.include_router(ea_bridge.router)
 
-# ── Health Check ───────────────────────────────────────────────────────────────
+# ── Health Check ──────────────────────────────────────────────────────────────
 
 @app.get("/health")
 def health():
@@ -82,18 +82,21 @@ MOBILE_FIX_STYLE = """
   .dash-title-wrap {
     min-width: 0 !important;
     flex: 1 1 auto !important;
+    max-width: 160px !important;
   }
 
   .dash-title {
     font-size: 15px !important;
     line-height: 1.08 !important;
+    letter-spacing: 0 !important;
     max-width: 100% !important;
-    word-break: break-word !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    text-align: right !important;
   }
 
   #dashSubtitle {
-    font-size: 10px !important;
-    line-height: 1.2 !important;
+    display: none !important;
   }
 
   .dash-right {
@@ -111,6 +114,16 @@ MOBILE_FIX_STYLE = """
 
   .market-decision-card {
     margin-top: 8px !important;
+  }
+}
+
+@media (max-width:480px) {
+  .dash-title-wrap {
+    max-width: 120px !important;
+  }
+
+  .dash-title {
+    font-size: 13px !important;
   }
 }
 </style>
@@ -134,6 +147,8 @@ if os.path.isdir(FRONTEND_DIR):
         if os.path.exists(index):
             with open(index, "r", encoding="utf-8") as f:
                 html = f.read()
+            html = html.replace("AMRO ENGIN — AI Trading Intelligence", "AMRO ENGIN AI")
+            html = html.replace("AMRO ENGIN AI Trading Intelligence", "AMRO ENGIN AI")
             if MOBILE_FIX_STYLE not in html:
                 html = html.replace("</head>", f"{MOBILE_FIX_STYLE}\n</head>", 1)
             return HTMLResponse(html)
@@ -141,7 +156,7 @@ if os.path.isdir(FRONTEND_DIR):
 else:
     logger.warning("frontend/ not found — only API mode active")
 
-# ── Run ────────────────────────────────────────────────────────────────────────
+# ── Run ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     logger.info(f"Starting AMRO on {settings.APP_HOST}:{settings.APP_PORT}")
